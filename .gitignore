@@ -1,0 +1,10 @@
+# NEVER commit signing material or secrets
+*.jks
+*.keystore
+*.pw
+.env
+SWARR-SETUP.txt
+# build output
+build/
+work/
+*.apk

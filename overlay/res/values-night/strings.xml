@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auto_load_more">Automatically load more songs</string>
+    <string name="auto_skip_next_on_error">Automatically skip to the next song when an error occurs</string>
+    <string name="auto_skip_next_on_error_desc">Ensure uninterrupted playback</string>
+    <string name="clear_listen_history">Clear listening history</string>
+    <string name="clear_listen_history_confirm">Are you sure you want to clear all listening history?</string>
+    <string name="delete_playlist_confirm">Do you really want to delete the playlist \"%s\"?</string>
+    <string name="disable_screenshot">Disable screenshots</string>
+    <string name="disable_screenshot_desc">When this option is enabled, screenshots and the app preview in Recents are disabled.</string>
+    <string name="export_directory_unavailable">Unable to access an export directory on this device.</string>
+    <string name="floating_nav_bar">Floating navigation bar</string>
+    <string name="floating_nav_bar_desc">iOS-style floating tab bar that shrinks while scrolling</string>
+    <string name="hide_status_bar_on_fullscreen">Hide status bar in fullscreen mode</string>
+    <string name="hide_status_bar_on_fullscreen_desc">Hide the status bar when fullscreen lyrics mode is active</string>
+    <string name="liquid_glass_performance_warning">Rendering Liquid Glass is resource-intensive and may reduce smoothness and battery life on some devices</string>
+    <string name="liquid_glass_vibrancy_desc">Increase the saturation of the glass backdrop</string>
+    <string name="listen_history">Listening history</string>
+    <string name="listenbrainz_scrobbling_description">Automatically submit the tracks you listen to to ListenBrainz</string>
+    <string name="lyrics_swipe_to_change_song_desc">Swipe left or right in the artist and song name section in fullscreen lyrics to change the song</string>
+    <string name="lyrics_thumbnail_play_pause_desc">Show a play/pause button overlay on the song thumbnail in fullscreen lyrics</string>
+    <string name="media_id">Media ID</string>
+    <string name="pause_listen_history">Pause listening history</string>
+    <string name="picker_not_available">"Document picker is not available on this device. Using the app's default export directory."</string>
+    <string name="recognition_notification_channel_desc">Shows a notification while identifying a song from Quick Settings</string>
+    <string name="remove_download_playlist_confirm">Do you really want to remove all \"%s\" playlist songs from the Downloaded Songs storage?</string>
+    <string name="removed_song_from_playlist">Removed \"%s\" from playlist</string>
+    <string name="spotify_import_by_link_desc">"Paste a Spotify playlist link to import it, even if you don't own the playlist"</string>
+    <string name="spotify_import_desc">Connect Spotify, choose playlists, and mirror them to local Swarr playlists.</string>
+    <string name="spotify_import_title">Import from Spotify</string>
+    <string name="stop_music_on_task_clear">Stop music when the app is cleared</string>
+</resources>
