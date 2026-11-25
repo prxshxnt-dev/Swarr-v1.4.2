@@ -1,0 +1,384 @@
+{
+  "entities": {
+    "CmsStateDocument": {
+      "title": "CMS State Document",
+      "description": "Stores either the live published website state or the admin working draft in Firestore without exposing admin PII on the published document.",
+      "type": "object",
+      "properties": {
+        "stateType": {
+          "type": "string",
+          "enum": ["published", "draft"],
+          "description": "Whether this document represents the live published site or the working draft."
+        },
+        "version": {
+          "type": "integer",
+          "description": "Monotonically increasing publication/draft version counter."
+        },
+        "site": {
+          "type": "object",
+          "description": "Complete structured CMS site payload (pages, navigation, footer, appearance, seo, settings)."
+        },
+        "recycleBin": {
+          "type": "array",
+          "description": "Soft-deleted pages and sections awaiting restore or permanent deletion (max 100 items)."
+        },
+        "hasUnpublishedChanges": {
+          "type": "boolean",
+          "description": "Indicates whether the draft differs from the live published state."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the authorized super admin who last updated this state."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial document creation (immutable)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last modification."
+        }
+      },
+      "required": [
+        "stateType",
+        "version",
+        "site",
+        "recycleBin",
+        "hasUnpublishedChanges",
+        "updatedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MediaAsset": {
+      "title": "Media Asset",
+      "description": "Metadata for an image or media file managed in the CMS Media Library.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "folder": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "image/svg+xml",
+            "image/gif"
+          ]
+        },
+        "sizeBytes": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": ["builtin", "url", "cloud_blob"]
+        },
+        "url": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        },
+        "deleted": {
+          "type": "boolean"
+        },
+        "uploadedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "alt",
+        "folder",
+        "mimeType",
+        "sizeBytes",
+        "sourceType",
+        "url",
+        "deleted",
+        "uploadedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MediaBlob": {
+      "title": "Media Blob",
+      "description": "Optimized cloud-stored image payload linked 1:1 with a MediaAsset document.",
+      "type": "object",
+      "properties": {
+        "mediaId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "image/svg+xml",
+            "image/gif"
+          ]
+        },
+        "dataUrl": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 800000
+        },
+        "deleted": {
+          "type": "boolean"
+        },
+        "uploadedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "mediaId",
+        "mimeType",
+        "dataUrl",
+        "deleted",
+        "uploadedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CmsRevision": {
+      "title": "CMS Revision",
+      "description": "Immutable historical snapshot of the website state for diffing and rollback.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["draft_save", "publish", "restore", "rollback"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "snapshot": {
+          "type": "object"
+        },
+        "authorUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "action",
+        "summary",
+        "snapshot",
+        "authorUid",
+        "authorEmail",
+        "createdAt"
+      ]
+    },
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "Append-only audit trail recording every admin modification and publication.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "page",
+            "section",
+            "media",
+            "navigation",
+            "footer",
+            "appearance",
+            "seo",
+            "publish",
+            "revision",
+            "settings",
+            "auth"
+          ]
+        },
+        "entityLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "details": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "actorUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "actorEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "action",
+        "entityType",
+        "entityLabel",
+        "details",
+        "actorUid",
+        "actorEmail",
+        "createdAt"
+      ]
+    },
+    "AdminProfile": {
+      "title": "Admin Profile",
+      "description": "Authorized Super Admin record isolated from public access.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "role": {
+          "type": "string",
+          "enum": ["super_admin"]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "role", "createdAt", "lastLoginAt"]
+    }
+  },
+  "firestore": {
+    "/cms_state/{stateId}": {
+      "schema": { "$ref": "#/entities/CmsStateDocument" },
+      "description": "Singleton documents 'published' (public read, admin write) and 'draft' (admin-only read/write)."
+    },
+    "/media/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaAsset" },
+      "description": "Media Library asset metadata. Active assets are readable publicly; soft-deleted assets and all writes are admin-only."
+    },
+    "/media_blobs/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaBlob" },
+      "description": "Cloud-stored optimized image data linked to /media/{mediaId}. Direct get for active blobs; list and writes are admin-only."
+    },
+    "/cms_revisions/{revisionId}": {
+      "schema": { "$ref": "#/entities/CmsRevision" },
+      "description": "Immutable CMS revision snapshots for version comparison and rollback. Admin-only."
+    },
+    "/activity_logs/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Append-only admin activity audit log. Admin-only."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminProfile" },
+      "description": "Authorized Super Admin registry. Strictly admin-only."
+    }
+  }
+}

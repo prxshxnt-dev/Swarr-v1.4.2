@@ -1,0 +1,35 @@
+# Environment variables & local secrets (never commit real credentials)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+!.env.example
+
+# Firebase local credentials & service accounts
+firebase-applet-config.json
+!firebase-applet-config.example.json
+*service-account*.json
+*firebase-adminsdk*.json
+*.pem
+*.key
+*.p12
+
+# Dependencies & build outputs
+node_modules/
+dist/
+.vercel/
+.netlify/
+
+# Local tooling, caches, and OS files
+.playwright-cli/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Legacy build artifacts
+/freebuff-sites-build/
+/refs/
+/swarr-website.zip

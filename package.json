@@ -1,0 +1,30 @@
+{
+  "name": "swarr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "vite build && node --check server.js && node --check app.js && node --check lib/cms-api-core.js && node --check 'api/[...route].js' && node --check netlify/functions/api.js",
+    "lint": "npx tsc --noEmit && npx eslint firestore.rules && node --check server.js && node --check app.js && node --check lib/cms-api-core.js && node --check 'api/[...route].js' && node --check netlify/functions/api.js",
+    "test": "npx tsx --test firestore.rules.test.ts src/cms/cmsLogic.test.ts lib/cms-api-core.test.ts"
+  },
+  "dependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.3.1",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^10.15.0",
+    "express": "^4.21.2",
+    "firebase": "^13.4.0",
+    "lucide-react": "^1.80.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

@@ -1,0 +1,427 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 4.1: Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ── Reusable Hardened Primitives ──────────────────────────────────────
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // O(1) verified super-admin check (no DB lookups; safe in list queries)
+    function isBootstrapAdmin() {
+      return isVerifiedEmail() && request.auth.token.email == 'meinkxun@gmail.com';
+    }
+
+    // Full admin check for single-document operations
+    function isAdmin() {
+      return isBootstrapAdmin() || (
+        isVerifiedEmail() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidMimeType(mime) {
+      return mime is string && mime in [
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+        'image/svg+xml',
+        'image/gif'
+      ];
+    }
+
+    // ── Pillar 2: Standalone Validation Blueprints ────────────────────────
+    function isValidCmsState(data, stateId) {
+      return (stateId == 'published' || stateId == 'draft') &&
+        data.keys().hasAll([
+          'stateType',
+          'version',
+          'site',
+          'recycleBin',
+          'hasUnpublishedChanges',
+          'updatedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'stateType',
+          'version',
+          'site',
+          'recycleBin',
+          'hasUnpublishedChanges',
+          'updatedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.stateType == stateId &&
+        data.version is int &&
+        data.version >= 1 &&
+        data.version <= 1000000 &&
+        data.site is map &&
+        data.site.keys().hasAll(['pages', 'navigation', 'footer', 'appearance', 'seo', 'settings']) &&
+        data.site.pages is list &&
+        data.site.pages.size() <= 40 &&
+        (data.site.pages.size() == 0 || data.site.pages[0] is map) &&
+        data.recycleBin is list &&
+        data.recycleBin.size() <= 100 &&
+        (data.recycleBin.size() == 0 || data.recycleBin[0] is map) &&
+        data.hasUnpublishedChanges is bool &&
+        isValidId(data.updatedBy) &&
+        data.updatedBy == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMediaAsset(data, mediaId) {
+      return isValidId(mediaId) &&
+        data.keys().hasAll([
+          'id',
+          'name',
+          'alt',
+          'folder',
+          'mimeType',
+          'sizeBytes',
+          'sourceType',
+          'url',
+          'deleted',
+          'uploadedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'name',
+          'alt',
+          'folder',
+          'mimeType',
+          'sizeBytes',
+          'width',
+          'height',
+          'sourceType',
+          'url',
+          'deleted',
+          'uploadedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.id == mediaId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.alt is string && data.alt.size() <= 300 &&
+        data.folder is string && data.folder.size() >= 1 && data.folder.size() <= 64 &&
+        isValidMimeType(data.mimeType) &&
+        data.sizeBytes is int && data.sizeBytes >= 0 && data.sizeBytes <= 10485760 &&
+        (!('width' in data) || (data.width is int && data.width >= 0 && data.width <= 10000)) &&
+        (!('height' in data) || (data.height is int && data.height >= 0 && data.height <= 10000)) &&
+        data.sourceType in ['builtin', 'url', 'cloud_blob'] &&
+        data.url is string && data.url.size() <= 2048 &&
+        data.deleted is bool &&
+        isValidId(data.uploadedBy) &&
+        data.uploadedBy == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMediaBlob(data, mediaId) {
+      return isValidId(mediaId) &&
+        data.keys().hasAll([
+          'mediaId',
+          'mimeType',
+          'dataUrl',
+          'deleted',
+          'uploadedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'mediaId',
+          'mimeType',
+          'dataUrl',
+          'deleted',
+          'uploadedBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.mediaId == mediaId &&
+        isValidMimeType(data.mimeType) &&
+        data.dataUrl is string &&
+        data.dataUrl.size() >= 10 &&
+        data.dataUrl.size() <= 800000 &&
+        data.dataUrl.matches('^data:image/(png|jpeg|webp|svg\\+xml|gif);base64,[A-Za-z0-9+/=]+$') &&
+        data.deleted is bool &&
+        isValidId(data.uploadedBy) &&
+        data.uploadedBy == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCmsRevision(data, revisionId) {
+      return isValidId(revisionId) &&
+        data.keys().hasAll([
+          'id',
+          'version',
+          'action',
+          'summary',
+          'snapshot',
+          'authorUid',
+          'authorEmail',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'version',
+          'action',
+          'summary',
+          'snapshot',
+          'authorUid',
+          'authorEmail',
+          'createdAt'
+        ]) &&
+        data.id == revisionId &&
+        data.version is int && data.version >= 1 && data.version <= 1000000 &&
+        data.action in ['draft_save', 'publish', 'restore', 'rollback'] &&
+        data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 300 &&
+        data.snapshot is map &&
+        isValidId(data.authorUid) &&
+        data.authorUid == request.auth.uid &&
+        data.authorEmail is string && data.authorEmail.size() >= 3 && data.authorEmail.size() <= 254 &&
+        data.authorEmail == request.auth.token.email &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidActivityLog(data, logId) {
+      return isValidId(logId) &&
+        data.keys().hasAll([
+          'id',
+          'action',
+          'entityType',
+          'entityLabel',
+          'details',
+          'actorUid',
+          'actorEmail',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'action',
+          'entityType',
+          'entityLabel',
+          'details',
+          'actorUid',
+          'actorEmail',
+          'createdAt'
+        ]) &&
+        data.id == logId &&
+        data.action is string && data.action.size() >= 1 && data.action.size() <= 80 &&
+        data.entityType in [
+          'page',
+          'section',
+          'media',
+          'navigation',
+          'footer',
+          'appearance',
+          'seo',
+          'publish',
+          'revision',
+          'settings',
+          'auth'
+        ] &&
+        data.entityLabel is string && data.entityLabel.size() >= 1 && data.entityLabel.size() <= 200 &&
+        data.details is string && data.details.size() <= 500 &&
+        isValidId(data.actorUid) &&
+        data.actorUid == request.auth.uid &&
+        data.actorEmail is string && data.actorEmail.size() >= 3 && data.actorEmail.size() <= 254 &&
+        data.actorEmail == request.auth.token.email &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidAdminProfile(data, uid) {
+      return isValidId(uid) &&
+        data.keys().hasAll(['uid', 'email', 'role', 'createdAt', 'lastLoginAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'role', 'displayName', 'createdAt', 'lastLoginAt']) &&
+        data.uid == uid &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 254 &&
+        data.role == 'super_admin' &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 120)) &&
+        data.createdAt is timestamp &&
+        data.lastLoginAt is timestamp;
+    }
+
+    // ── Collection: /cms_state/{stateId} ──────────────────────────────────
+    match /cms_state/{stateId} {
+      allow get: if isValidId(stateId) && (
+        stateId == 'published' ||
+        (stateId == 'draft' && isAdmin())
+      );
+      allow list: if false;
+      allow create: if isSignedIn() &&
+        isValidId(stateId) &&
+        isValidCmsState(incoming(), stateId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(stateId) &&
+        isValidCmsState(incoming(), stateId) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().stateType == existing().stateType &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'version',
+          'site',
+          'recycleBin',
+          'hasUnpublishedChanges',
+          'updatedBy',
+          'updatedAt'
+        ]) &&
+        isAdmin();
+      allow delete: if false;
+    }
+
+    // ── Collection: /media/{mediaId} ──────────────────────────────────────
+    match /media/{mediaId} {
+      allow get: if isValidId(mediaId) && (
+        existing().deleted == false ||
+        isAdmin()
+      );
+      allow list: if isBootstrapAdmin() || resource.data.deleted == false;
+      allow create: if isSignedIn() &&
+        isValidId(mediaId) &&
+        isValidMediaAsset(incoming(), mediaId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(mediaId) &&
+        isValidMediaAsset(incoming(), mediaId) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().id == existing().id &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name',
+          'alt',
+          'folder',
+          'mimeType',
+          'sizeBytes',
+          'width',
+          'height',
+          'sourceType',
+          'url',
+          'deleted',
+          'uploadedBy',
+          'updatedAt'
+        ]) &&
+        isAdmin();
+      allow delete: if isSignedIn() && isValidId(mediaId) && isAdmin();
+    }
+
+    // ── Collection: /media_blobs/{mediaId} ────────────────────────────────
+    match /media_blobs/{mediaId} {
+      allow get: if isValidId(mediaId) && (
+        existing().deleted == false ||
+        isAdmin()
+      );
+      allow list: if isBootstrapAdmin();
+      allow create: if isSignedIn() &&
+        isValidId(mediaId) &&
+        isValidMediaBlob(incoming(), mediaId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin() &&
+        existsAfter(/databases/$(database)/documents/media/$(mediaId));
+      allow update: if isSignedIn() &&
+        isValidId(mediaId) &&
+        isValidMediaBlob(incoming(), mediaId) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().mediaId == existing().mediaId &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'mimeType',
+          'dataUrl',
+          'deleted',
+          'uploadedBy',
+          'updatedAt'
+        ]) &&
+        isAdmin() &&
+        exists(/databases/$(database)/documents/media/$(mediaId));
+      allow delete: if isSignedIn() && isValidId(mediaId) && isAdmin();
+    }
+
+    // ── Collection: /cms_revisions/{revisionId} ───────────────────────────
+    match /cms_revisions/{revisionId} {
+      allow get: if isValidId(revisionId) && isAdmin();
+      allow list: if isBootstrapAdmin();
+      allow create: if isSignedIn() &&
+        isValidId(revisionId) &&
+        isValidCmsRevision(incoming(), revisionId) &&
+        incoming().createdAt == request.time &&
+        isAdmin();
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(revisionId) && isAdmin();
+    }
+
+    // ── Collection: /activity_logs/{logId} ────────────────────────────────
+    match /activity_logs/{logId} {
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isBootstrapAdmin();
+      allow create: if isSignedIn() &&
+        isValidId(logId) &&
+        isValidActivityLog(incoming(), logId) &&
+        incoming().createdAt == request.time &&
+        isAdmin();
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(logId) && isAdmin();
+    }
+
+    // ── Collection: /admins/{uid} ─────────────────────────────────────────
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && isAdmin();
+      allow list: if isBootstrapAdmin();
+      allow create: if isSignedIn() &&
+        isValidId(uid) &&
+        isValidAdminProfile(incoming(), uid) &&
+        incoming().createdAt == request.time &&
+        incoming().lastLoginAt == request.time &&
+        isBootstrapAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(uid) &&
+        isValidAdminProfile(incoming(), uid) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().uid == existing().uid &&
+        incoming().role == existing().role &&
+        incoming().lastLoginAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'email',
+          'displayName',
+          'lastLoginAt'
+        ]) &&
+        isBootstrapAdmin();
+      allow delete: if false;
+    }
+
+    // ── Connection probe path used by startup testConnection() ────────────
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+  }
+}
