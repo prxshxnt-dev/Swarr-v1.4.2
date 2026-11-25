@@ -15,7 +15,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './client';
-import { isSafeUrl, makeSafeId, sanitizeSvg } from '../cms/cmsLogic';
+import { applyReleaseDefaults, isSafeUrl, makeSafeId, sanitizeSvg } from '../cms/cmsLogic';
 import { BUILTIN_MEDIA_SEED, createSeedSite } from '../cms/seedContent';
 import type {
   ActivityLog,
@@ -310,7 +310,7 @@ export async function loadAdminWorkspace(): Promise<{
     ]);
 
     const fallbackSite = createSeedSite();
-    const published: CmsStateDoc = pubSnap.exists()
+    const publishedRaw: CmsStateDoc = pubSnap.exists()
       ? (pubSnap.data() as CmsStateDoc)
       : {
           stateType: 'published',
@@ -320,9 +320,17 @@ export async function loadAdminWorkspace(): Promise<{
           hasUnpublishedChanges: false,
           updatedBy: 'system',
         };
-    const draft: CmsStateDoc = draftSnap.exists()
+    const published: CmsStateDoc = {
+      ...publishedRaw,
+      site: applyReleaseDefaults(publishedRaw.site),
+    };
+    const draftRaw: CmsStateDoc = draftSnap.exists()
       ? (draftSnap.data() as CmsStateDoc)
       : { ...published, stateType: 'draft' };
+    const draft: CmsStateDoc = {
+      ...draftRaw,
+      site: applyReleaseDefaults(draftRaw.site),
+    };
 
     const media = Object.values(mediaMap).sort((a, b) => a.name.localeCompare(b.name));
     const revisions = revSnap.docs.map((d) => d.data() as CmsRevision);

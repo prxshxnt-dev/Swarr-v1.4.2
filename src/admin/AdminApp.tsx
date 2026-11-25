@@ -499,8 +499,19 @@ function AdminWorkspace() {
 
   if (authPhase === 'signed_out') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-sm">
+      <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+        <div className="w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 py-2 text-center">
+          <a
+            href="https://github.com/prxshxnt-dev/Swarr-v1.4.2"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-display text-xs font-extrabold tracking-wide text-zinc-900 dark:text-white hover:text-[#ff4a1c]"
+          >
+            Built by Prashant
+          </a>
+        </div>
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ff4a1c]">
@@ -569,6 +580,19 @@ function AdminWorkspace() {
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Swarr</span>
             </a>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-zinc-500">
+            <span>App &amp; Site Developed by <strong className="font-semibold text-zinc-700 dark:text-zinc-300">Prashant</strong></span>
+            <a
+              href="https://github.com/prxshxnt-dev/Swarr-v1.4.2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono hover:text-[#ff4a1c] whitespace-nowrap shrink-0"
+            >
+              GitHub Repo
+            </a>
+          </div>
           </div>
         </div>
       </div>
@@ -654,7 +678,7 @@ function AdminWorkspace() {
           })}
         </nav>
 
-        <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 p-3 space-y-2.5">
           <button
             type="button"
             onClick={handleLogout}
@@ -663,6 +687,19 @@ function AdminWorkspace() {
             <LogOut className="h-4 w-4 shrink-0" />
             <span>Logout</span>
           </button>
+          <div className="px-3 pt-2 border-t border-zinc-200/70 dark:border-zinc-800/70 text-[11px] text-zinc-500 leading-relaxed">
+            <div>
+              Developed by <strong className="font-semibold text-zinc-700 dark:text-zinc-300">Prashant</strong>
+            </div>
+            <a
+              href="https://github.com/prxshxnt-dev/Swarr-v1.4.2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[10px] hover:text-[#ff4a1c]"
+            >
+              prxshxnt-dev/Swarr-v1.4.2
+            </a>
+          </div>
         </div>
       </aside>
 
@@ -709,7 +746,7 @@ function AdminWorkspace() {
                 );
               })}
             </nav>
-            <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
+            <div className="border-t border-zinc-200 dark:border-zinc-800 p-3 space-y-2.5">
               <button
                 type="button"
                 onClick={handleLogout}
@@ -718,6 +755,9 @@ function AdminWorkspace() {
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </button>
+              <div className="px-3 pt-2 border-t border-zinc-200/70 dark:border-zinc-800/70 text-[11px] text-zinc-500">
+                App &amp; Site Developed by <strong className="font-semibold text-zinc-700 dark:text-zinc-300">Prashant</strong>
+              </div>
             </div>
           </aside>
         </div>
@@ -737,6 +777,12 @@ function AdminWorkspace() {
               <Menu className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2 text-xs text-zinc-500 min-w-0">
+              <span className="font-display font-extrabold text-zinc-900 dark:text-white whitespace-nowrap">
+                Built by Prashant
+              </span>
+              <span className="hidden sm:inline" aria-hidden="true">
+                ·
+              </span>
               <span className="hidden sm:inline">Swarr Admin</span>
               <span className="hidden sm:inline" aria-hidden="true">
                 /

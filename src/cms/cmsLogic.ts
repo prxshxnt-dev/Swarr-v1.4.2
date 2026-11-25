@@ -424,3 +424,70 @@ export function computeDashboardStats(site: CmsSite, media: MediaAsset[]) {
     trashedMedia,
   };
 }
+
+export const SWARR_GITHUB_REPO_URL = 'https://github.com/prxshxnt-dev/Swarr-v1.4.2';
+export const SWARR_APK_SIZE_LABEL = '147 MB';
+export const SWARR_DEVELOPER_COPYRIGHT = '© 2026 Swarr · App & Site Developed by Prashant';
+
+const LEGACY_APK_BADGES = new Set(['38 mb', '145 mb']);
+
+/**
+ * Upgrades legacy pre-v1.4.2 default values stored in earlier Firestore documents
+ * (38 MB / 145 MB APK size, generic GitHub/anchor download links, legacy copyright)
+ * while leaving any other custom admin edits untouched.
+ */
+export function applyReleaseDefaults(site: CmsSite): CmsSite {
+  const next = structuredClone(site);
+
+  for (const page of next.pages) {
+    for (const sec of page.sections) {
+      if (sec.type === 'hero' || sec.type === 'outro' || sec.type === 'ctaBanner') {
+        const data = sec.data as { ctas?: Array<{ badge?: string; label?: string }> };
+        if (Array.isArray(data.ctas)) {
+          for (const cta of data.ctas) {
+            if (cta.badge && LEGACY_APK_BADGES.has(cta.badge.trim().toLowerCase())) {
+              cta.badge = SWARR_APK_SIZE_LABEL;
+            }
+          }
+        }
+      } else if (sec.type === 'platforms') {
+        const data = sec.data as {
+          items?: Array<{ id?: string; name?: string; meta?: string; buttonUrl?: string }>;
+        };
+        if (Array.isArray(data.items)) {
+          for (const item of data.items) {
+            if (typeof item.meta === 'string') {
+              item.meta = item.meta.replace(/\b(?:38|145)\s*MB\b/gi, SWARR_APK_SIZE_LABEL);
+            }
+            const isAndroid =
+              item.id === 'pl-android' ||
+              (typeof item.name === 'string' && /android/i.test(item.name));
+            const rawUrl = (item.buttonUrl || '').trim();
+            if (isAndroid && (!rawUrl || rawUrl === '#' || rawUrl === '#top')) {
+              item.buttonUrl = SWARR_GITHUB_REPO_URL;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (next.footer) {
+    if (Array.isArray(next.footer.socials)) {
+      for (const soc of next.footer.socials) {
+        const isGithub = typeof soc.label === 'string' && /github/i.test(soc.label);
+        const rawUrl = (soc.url || '').trim().replace(/\/+$/, '').toLowerCase();
+        if (isGithub && (!rawUrl || rawUrl === '#' || rawUrl === 'https://github.com')) {
+          soc.url = SWARR_GITHUB_REPO_URL;
+        }
+      }
+    }
+    const rawCopyright = (next.footer.copyrightText || '').trim();
+    if (!rawCopyright || rawCopyright === '© 2026 Swarr Audio Ltd.') {
+      next.footer.copyrightText = SWARR_DEVELOPER_COPYRIGHT;
+    }
+  }
+
+  return next;
+}
+

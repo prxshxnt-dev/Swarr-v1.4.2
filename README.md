@@ -11,12 +11,13 @@
 
 **Every song. No ads. No account. Built exclusively for Android.**
 
-[![Platform](https://img.shields.io/badge/Android-8.0%2B-ff4a1c?style=flat-square&logo=android&logoColor=white)](#)
+[![Platform](https://img.shields.io/badge/Android-8.0%2B_%7C_147_MB-ff4a1c?style=flat-square&logo=android&logoColor=white)](https://github.com/prxshxnt-dev/Swarr-v1.4.2)
+[![GitHub](https://img.shields.io/badge/Repository-Swarr--v1.4.2-18181b?style=flat-square&logo=github&logoColor=white)](https://github.com/prxshxnt-dev/Swarr-v1.4.2)
 [![Frontend](https://img.shields.io/badge/React_19-TypeScript-18181b?style=flat-square&logo=react&logoColor=61dafb)](#)
 [![Backend](https://img.shields.io/badge/Firebase-Firestore_%2B_OAuth-18181b?style=flat-square&logo=firebase&logoColor=ffca28)](#)
 [![Deploy](https://img.shields.io/badge/Deploy-Netlify_%7C_Vercel-18181b?style=flat-square&logo=vercel&logoColor=white)](#-deployment-guides)
 
-*A high-contrast editorial landing site for the Swarr Android music app paired with a full cloud-backed Admin Panel & Visual CMS at `/admin` — engineered for zero-config dual deployment on both **Netlify** and **Vercel**.*
+*A high-contrast editorial landing site for the Swarr Android music app paired with a full cloud-backed Admin Panel & Visual CMS at `/admin` — developed by **Prashant** and engineered for zero-config dual deployment on both **Netlify** and **Vercel**.*
 
 </div>
 
@@ -25,7 +26,7 @@
 ## Highlights
 
 ### Public Android Website (`/`)
-- **Android-Exclusive Experience** — Streamlined for Android 8.0+ phones and tablets with a dedicated Universal APK download section.
+- **Android-Exclusive Experience** — Streamlined for Android 8.0+ phones and tablets with a dedicated Universal APK download section (`147 MB`) linked to [`prxshxnt-dev/Swarr-v1.4.2`](https://github.com/prxshxnt-dev/Swarr-v1.4.2).
 - **Interactive Demos** — Clickable word-synced lyrics (*Nakhre — Talwiinder*), live offline download queue simulation, draggable app screen rail, and an interactive 10-band equalizer with presets.
 - **Adaptive Album Art Catalogue** — Six real featured tracks (*Blinding Lights*, *Nakhre*, *bad guy*, *Marham*, *Idhar Zara Sa Dekh Lo*, *Suroor*) with cover-driven accent palettes.
 - **Dynamic Cloud Hydration** — Published CMS changes (copy, covers, visibility toggles, custom pages `/p/:slug`, navigation, footer, SEO, and theme tokens) apply live on page load with zero redeployment required.
@@ -107,8 +108,10 @@ Sensitive configuration files are strictly excluded from Git via `.gitignore`:
 
 ## Local Development
 
-### 1. Install Dependencies
+### 1. Clone & Install Dependencies
 ```bash
+git clone https://github.com/prxshxnt-dev/Swarr-v1.4.2.git
+cd Swarr-v1.4.2
 npm install
 ```
 
@@ -226,3 +229,10 @@ Run through these checks after deploying to Netlify and/or Vercel:
 - [ ] Clicking **Publish Changes** immediately updates the public website on reload.
 - [ ] Direct navigation & browser refresh on a CMS-created page (`/p/<slug>`) renders without 404.
 - [ ] Triggering a fresh Git commit & redeploy preserves 100% of uploaded images, published content, settings, and revision history.
+
+---
+
+## Credits
+
+- **Developer (App & Website)**: **Prashant** ([`@prxshxnt-dev`](https://github.com/prxshxnt-dev/Swarr-v1.4.2))
+- **Repository**: [`https://github.com/prxshxnt-dev/Swarr-v1.4.2.git`](https://github.com/prxshxnt-dev/Swarr-v1.4.2)

@@ -1,4 +1,9 @@
-import { isSafeUrl, resolveMediaUrl } from '../cms/cmsLogic';
+import {
+  applyReleaseDefaults,
+  isSafeUrl,
+  resolveMediaUrl,
+  SWARR_GITHUB_REPO_URL,
+} from '../cms/cmsLogic';
 import { loadActiveMediaMap, loadPublishedSite } from '../firebase/cmsRepo';
 import type {
   AppearanceConfig,
@@ -969,7 +974,7 @@ function renderPlatformsSection(sec: CmsSection<'platforms'>): HTMLElement {
 
     const foot = createEl('div', 'plat-foot');
     foot.appendChild(createEl('span', undefined, item.meta));
-    const btn = createSafeLink(item.buttonUrl);
+    const btn = createSafeLink(item.buttonUrl, /^https?:\/\//i.test(item.buttonUrl));
     btn.className = item.buttonGhost ? 'btn btn-sm btn-ghost' : 'btn btn-sm';
     btn.textContent = item.buttonLabel;
     setCmsTarget(btn, `section:${sec.id}:platBtn:${item.id}`, `Button: ${item.buttonLabel}`);
@@ -1269,6 +1274,11 @@ function renderFooter(
     bottom.appendChild(createEl('span', undefined, footerCfg.copyrightText));
     const right = document.createElement('span');
     right.appendChild(document.createTextNode(`${footerCfg.bottomNote} · `));
+    const repoLink = createSafeLink(SWARR_GITHUB_REPO_URL, true);
+    repoLink.className = 'footer-admin-link';
+    repoLink.textContent = 'GitHub';
+    right.appendChild(repoLink);
+    right.appendChild(document.createTextNode(' · '));
     const adminLink = createSafeLink('/admin');
     adminLink.className = 'footer-admin-link';
     adminLink.textContent = 'Admin';
@@ -1434,7 +1444,7 @@ async function hydratePublicCms() {
       loadActiveMediaMap(false),
     ]);
     if (published && published.site) {
-      renderSite(published.site, mediaMap);
+      renderSite(applyReleaseDefaults(published.site), mediaMap);
     }
   } catch (err) {
     // Graceful fallback: static index.html remains fully functional if Firestore isn't seeded yet

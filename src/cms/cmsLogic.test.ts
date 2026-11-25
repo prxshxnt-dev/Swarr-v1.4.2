@@ -12,6 +12,10 @@ import {
   restoreFromRecycleBin,
   diffSiteSnapshots,
   computeDashboardStats,
+  applyReleaseDefaults,
+  SWARR_GITHUB_REPO_URL,
+  SWARR_APK_SIZE_LABEL,
+  SWARR_DEVELOPER_COPYRIGHT,
 } from './cmsLogic';
 import { createSeedSite, BUILTIN_MEDIA_SEED } from './seedContent';
 import type { HeroSectionData, MediaAsset, PlatformsSectionData } from './types';
@@ -49,9 +53,45 @@ test('seed content is strictly Android-only (no Windows, iOS, Wear OS, or Web pl
   const platformsData = platforms.data as PlatformsSectionData;
   assert.equal(heroData.ctas.length, 1);
   assert.match(heroData.ctas[0].label, /Android/i);
+  assert.equal(heroData.ctas[0].badge, SWARR_APK_SIZE_LABEL);
   assert.equal(heroData.altPills.length, 0);
   assert.equal(platformsData.items.length, 1);
   assert.equal(platformsData.items[0].name, 'Android');
+  assert.equal(platformsData.items[0].buttonUrl, SWARR_GITHUB_REPO_URL);
+});
+
+test('applyReleaseDefaults upgrades legacy 38 MB / 145 MB / GitHub / copyright defaults without clobbering custom edits', () => {
+  const legacy = createSeedSite();
+  const hero = legacy.pages[0].sections.find((s) => s.type === 'hero')!;
+  (hero.data as HeroSectionData).ctas[0].badge = '38 MB';
+  const platforms = legacy.pages[0].sections.find((s) => s.type === 'platforms')!;
+  (platforms.data as PlatformsSectionData).items[0].meta = 'Android 8.0+ · Universal APK · 38 MB';
+  (platforms.data as PlatformsSectionData).items[0].buttonUrl = '#top';
+  legacy.footer.socials[0].url = 'https://github.com';
+  legacy.footer.copyrightText = '© 2026 Swarr Audio Ltd.';
+
+  const migrated = applyReleaseDefaults(legacy);
+  const mHero = migrated.pages[0].sections.find((s) => s.type === 'hero')!;
+  const mPlat = migrated.pages[0].sections.find((s) => s.type === 'platforms')!;
+  assert.equal((mHero.data as HeroSectionData).ctas[0].badge, SWARR_APK_SIZE_LABEL);
+  assert.equal(
+    (mPlat.data as PlatformsSectionData).items[0].meta,
+    'Android 8.0+ · Universal APK · 147 MB'
+  );
+  assert.equal((mPlat.data as PlatformsSectionData).items[0].buttonUrl, SWARR_GITHUB_REPO_URL);
+  assert.equal(migrated.footer.socials[0].url, SWARR_GITHUB_REPO_URL);
+  assert.equal(migrated.footer.copyrightText, SWARR_DEVELOPER_COPYRIGHT);
+
+  // Verify future custom edits are preserved
+  const custom = structuredClone(migrated);
+  (custom.pages[0].sections.find((s) => s.type === 'hero')!.data as HeroSectionData).ctas[0].badge = '162 MB';
+  custom.footer.copyrightText = '© 2027 Swarr Studio by Prashant';
+  const preserved = applyReleaseDefaults(custom);
+  assert.equal(
+    (preserved.pages[0].sections.find((s) => s.type === 'hero')!.data as HeroSectionData).ctas[0].badge,
+    '162 MB'
+  );
+  assert.equal(preserved.footer.copyrightText, '© 2027 Swarr Studio by Prashant');
 });
 
 test('resolveMediaUrl reflects replaced media assets automatically across references', () => {

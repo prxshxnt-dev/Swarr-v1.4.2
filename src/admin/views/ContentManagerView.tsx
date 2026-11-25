@@ -215,7 +215,7 @@ function ButtonsListEditor({
                 />
               </div>
               <div>
-                <label className={LABEL_CLS}>Sub-label (e.g. 38 MB)</label>
+                <label className={LABEL_CLS}>Sub-label (e.g. 147 MB)</label>
                 <input
                   type="text"
                   value={btn.badge || ''}
@@ -1583,9 +1583,9 @@ export function SectionContentEditor({
                           id: makeSafeId('plat'),
                           name: 'Android APK Mirror',
                           description: 'Direct signed APK package for Android 8.0+.',
-                          meta: '38 MB · Signed APK',
+                          meta: '147 MB · Signed APK',
                           buttonLabel: 'Download APK',
-                          buttonUrl: '#platforms',
+                          buttonUrl: 'https://github.com/prxshxnt-dev/Swarr-v1.4.2',
                           icon: 'android',
                           visible: true,
                         },

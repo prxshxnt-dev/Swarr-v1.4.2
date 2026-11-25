@@ -724,7 +724,7 @@ export function FooterView({
                       ...footer,
                       socials: [
                         ...footer.socials,
-                        { id: makeSafeId('soc'), label: 'GitHub', url: 'https://github.com', visible: true },
+                        { id: makeSafeId('soc'), label: 'GitHub', url: 'https://github.com/prxshxnt-dev/Swarr-v1.4.2', visible: true },
                       ],
                     },
                     'Added social link'
