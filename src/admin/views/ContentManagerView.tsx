@@ -1585,7 +1585,7 @@ export function SectionContentEditor({
                           description: 'Direct signed APK package for Android 8.0+.',
                           meta: '147 MB · Signed APK',
                           buttonLabel: 'Download APK',
-                          buttonUrl: 'https://github.com/prxshxnt-dev/Swarr-v1.4.2',
+                          buttonUrl: 'https://github.com/prxshxnt-dev/Swarr-v1.4.2/releases/download/Swarr/swarr.prashant.apk',
                           icon: 'android',
                           visible: true,
                         },

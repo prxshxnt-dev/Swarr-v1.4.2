@@ -11,7 +11,7 @@
 
 **Every song. No ads. No account. Built exclusively for Android.**
 
-[![Platform](https://img.shields.io/badge/Android-8.0%2B_%7C_147_MB-ff4a1c?style=flat-square&logo=android&logoColor=white)](https://github.com/prxshxnt-dev/Swarr-v1.4.2)
+[![Platform](https://img.shields.io/badge/Android-8.0%2B_%7C_147_MB-ff4a1c?style=flat-square&logo=android&logoColor=white)](https://github.com/prxshxnt-dev/Swarr-v1.4.2/releases/download/Swarr/swarr.prashant.apk)
 [![GitHub](https://img.shields.io/badge/Repository-Swarr--v1.4.2-18181b?style=flat-square&logo=github&logoColor=white)](https://github.com/prxshxnt-dev/Swarr-v1.4.2)
 [![Frontend](https://img.shields.io/badge/React_19-TypeScript-18181b?style=flat-square&logo=react&logoColor=61dafb)](#)
 [![Backend](https://img.shields.io/badge/Firebase-Firestore_%2B_OAuth-18181b?style=flat-square&logo=firebase&logoColor=ffca28)](#)
@@ -26,7 +26,7 @@
 ## Highlights
 
 ### Public Android Website (`/`)
-- **Android-Exclusive Experience** — Streamlined for Android 8.0+ phones and tablets with a dedicated Universal APK download section (`147 MB`) linked to [`prxshxnt-dev/Swarr-v1.4.2`](https://github.com/prxshxnt-dev/Swarr-v1.4.2).
+- **Android-Exclusive Experience** — Streamlined for Android 8.0+ phones and tablets with a direct Universal APK download (`147 MB`) at [`swarr.prashant.apk`](https://github.com/prxshxnt-dev/Swarr-v1.4.2/releases/download/Swarr/swarr.prashant.apk).
 - **Interactive Demos** — Clickable word-synced lyrics (*Nakhre — Talwiinder*), live offline download queue simulation, draggable app screen rail, and an interactive 10-band equalizer with presets.
 - **Adaptive Album Art Catalogue** — Six real featured tracks (*Blinding Lights*, *Nakhre*, *bad guy*, *Marham*, *Idhar Zara Sa Dekh Lo*, *Suroor*) with cover-driven accent palettes.
 - **Dynamic Cloud Hydration** — Published CMS changes (copy, covers, visibility toggles, custom pages `/p/:slug`, navigation, footer, SEO, and theme tokens) apply live on page load with zero redeployment required.

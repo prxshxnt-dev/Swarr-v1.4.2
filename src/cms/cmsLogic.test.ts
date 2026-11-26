@@ -14,6 +14,7 @@ import {
   computeDashboardStats,
   applyReleaseDefaults,
   SWARR_GITHUB_REPO_URL,
+  SWARR_APK_DOWNLOAD_URL,
   SWARR_APK_SIZE_LABEL,
   SWARR_DEVELOPER_COPYRIGHT,
 } from './cmsLogic';
@@ -54,19 +55,23 @@ test('seed content is strictly Android-only (no Windows, iOS, Wear OS, or Web pl
   assert.equal(heroData.ctas.length, 1);
   assert.match(heroData.ctas[0].label, /Android/i);
   assert.equal(heroData.ctas[0].badge, SWARR_APK_SIZE_LABEL);
+  assert.equal(heroData.ctas[0].url, SWARR_APK_DOWNLOAD_URL);
   assert.equal(heroData.altPills.length, 0);
   assert.equal(platformsData.items.length, 1);
   assert.equal(platformsData.items[0].name, 'Android');
-  assert.equal(platformsData.items[0].buttonUrl, SWARR_GITHUB_REPO_URL);
+  assert.equal(platformsData.items[0].buttonUrl, SWARR_APK_DOWNLOAD_URL);
+  assert.equal(site.navigation.ctaUrl, SWARR_APK_DOWNLOAD_URL);
 });
 
-test('applyReleaseDefaults upgrades legacy 38 MB / 145 MB / GitHub / copyright defaults without clobbering custom edits', () => {
+test('applyReleaseDefaults upgrades legacy 38 MB / 145 MB / download URL / GitHub / copyright defaults without clobbering custom edits', () => {
   const legacy = createSeedSite();
   const hero = legacy.pages[0].sections.find((s) => s.type === 'hero')!;
   (hero.data as HeroSectionData).ctas[0].badge = '38 MB';
+  (hero.data as HeroSectionData).ctas[0].url = '#platforms';
   const platforms = legacy.pages[0].sections.find((s) => s.type === 'platforms')!;
   (platforms.data as PlatformsSectionData).items[0].meta = 'Android 8.0+ · Universal APK · 38 MB';
   (platforms.data as PlatformsSectionData).items[0].buttonUrl = '#top';
+  legacy.navigation.ctaUrl = '#platforms';
   legacy.footer.socials[0].url = 'https://github.com';
   legacy.footer.copyrightText = '© 2026 Swarr Audio Ltd.';
 
@@ -74,11 +79,13 @@ test('applyReleaseDefaults upgrades legacy 38 MB / 145 MB / GitHub / copyright d
   const mHero = migrated.pages[0].sections.find((s) => s.type === 'hero')!;
   const mPlat = migrated.pages[0].sections.find((s) => s.type === 'platforms')!;
   assert.equal((mHero.data as HeroSectionData).ctas[0].badge, SWARR_APK_SIZE_LABEL);
+  assert.equal((mHero.data as HeroSectionData).ctas[0].url, SWARR_APK_DOWNLOAD_URL);
   assert.equal(
     (mPlat.data as PlatformsSectionData).items[0].meta,
     'Android 8.0+ · Universal APK · 147 MB'
   );
-  assert.equal((mPlat.data as PlatformsSectionData).items[0].buttonUrl, SWARR_GITHUB_REPO_URL);
+  assert.equal((mPlat.data as PlatformsSectionData).items[0].buttonUrl, SWARR_APK_DOWNLOAD_URL);
+  assert.equal(migrated.navigation.ctaUrl, SWARR_APK_DOWNLOAD_URL);
   assert.equal(migrated.footer.socials[0].url, SWARR_GITHUB_REPO_URL);
   assert.equal(migrated.footer.copyrightText, SWARR_DEVELOPER_COPYRIGHT);
 

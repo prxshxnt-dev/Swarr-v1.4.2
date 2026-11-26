@@ -426,10 +426,19 @@ export function computeDashboardStats(site: CmsSite, media: MediaAsset[]) {
 }
 
 export const SWARR_GITHUB_REPO_URL = 'https://github.com/prxshxnt-dev/Swarr-v1.4.2';
+export const SWARR_APK_DOWNLOAD_URL =
+  'https://github.com/prxshxnt-dev/Swarr-v1.4.2/releases/download/Swarr/swarr.prashant.apk';
 export const SWARR_APK_SIZE_LABEL = '147 MB';
 export const SWARR_DEVELOPER_COPYRIGHT = '© 2026 Swarr · App & Site Developed by Prashant';
 
 const LEGACY_APK_BADGES = new Set(['38 mb', '145 mb']);
+const LEGACY_DOWNLOAD_URLS = new Set([
+  '',
+  '#',
+  '#top',
+  '#platforms',
+  SWARR_GITHUB_REPO_URL.toLowerCase(),
+]);
 
 /**
  * Upgrades legacy pre-v1.4.2 default values stored in earlier Firestore documents
@@ -442,11 +451,20 @@ export function applyReleaseDefaults(site: CmsSite): CmsSite {
   for (const page of next.pages) {
     for (const sec of page.sections) {
       if (sec.type === 'hero' || sec.type === 'outro' || sec.type === 'ctaBanner') {
-        const data = sec.data as { ctas?: Array<{ badge?: string; label?: string }> };
+        const data = sec.data as {
+          ctas?: Array<{ badge?: string; label?: string; url?: string; openInNewTab?: boolean }>;
+        };
         if (Array.isArray(data.ctas)) {
           for (const cta of data.ctas) {
             if (cta.badge && LEGACY_APK_BADGES.has(cta.badge.trim().toLowerCase())) {
               cta.badge = SWARR_APK_SIZE_LABEL;
+            }
+            const isAndroidDownload =
+              typeof cta.label === 'string' && /download|android|swarr/i.test(cta.label);
+            const normalizedUrl = (cta.url || '').trim().replace(/\/+$/, '').toLowerCase();
+            if (isAndroidDownload && LEGACY_DOWNLOAD_URLS.has(normalizedUrl)) {
+              cta.url = SWARR_APK_DOWNLOAD_URL;
+              cta.openInNewTab = true;
             }
           }
         }
@@ -462,13 +480,20 @@ export function applyReleaseDefaults(site: CmsSite): CmsSite {
             const isAndroid =
               item.id === 'pl-android' ||
               (typeof item.name === 'string' && /android/i.test(item.name));
-            const rawUrl = (item.buttonUrl || '').trim();
-            if (isAndroid && (!rawUrl || rawUrl === '#' || rawUrl === '#top')) {
-              item.buttonUrl = SWARR_GITHUB_REPO_URL;
+            const normalizedUrl = (item.buttonUrl || '').trim().replace(/\/+$/, '').toLowerCase();
+            if (isAndroid && LEGACY_DOWNLOAD_URLS.has(normalizedUrl)) {
+              item.buttonUrl = SWARR_APK_DOWNLOAD_URL;
             }
           }
         }
       }
+    }
+  }
+
+  if (next.navigation) {
+    const navCtaUrl = (next.navigation.ctaUrl || '').trim().replace(/\/+$/, '').toLowerCase();
+    if (LEGACY_DOWNLOAD_URLS.has(navCtaUrl)) {
+      next.navigation.ctaUrl = SWARR_APK_DOWNLOAD_URL;
     }
   }
 

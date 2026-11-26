@@ -39,10 +39,25 @@ const firebaseConfig: FirebaseClientConfig = {
   measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || localConfig.measurementId || '',
 };
 
-const app = initializeApp(firebaseConfig);
+export const isFirebaseConfigured = Boolean(
+  firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId
+);
+
+const app = initializeApp(
+  isFirebaseConfigured
+    ? firebaseConfig
+    : {
+        apiKey: 'unconfigured',
+        authDomain: 'localhost',
+        projectId: 'unconfigured-swarr-cms',
+        appId: '1:000000000000:web:000000000000',
+      }
+);
 
 export const db =
-  firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
+  isFirebaseConfigured &&
+  firebaseConfig.firestoreDatabaseId &&
+  firebaseConfig.firestoreDatabaseId !== '(default)'
     ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
     : getFirestore(app);
 
@@ -105,7 +120,7 @@ export function handleFirestoreError(
 let connectionTested = false;
 
 export async function testConnection(): Promise<void> {
-  if (connectionTested) return;
+  if (connectionTested || !isFirebaseConfigured) return;
   connectionTested = true;
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));

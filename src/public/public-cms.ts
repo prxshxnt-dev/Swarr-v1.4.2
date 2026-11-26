@@ -4,6 +4,7 @@ import {
   resolveMediaUrl,
   SWARR_GITHUB_REPO_URL,
 } from '../cms/cmsLogic';
+import { isFirebaseConfigured } from '../firebase/client';
 import { loadActiveMediaMap, loadPublishedSite } from '../firebase/cmsRepo';
 import type {
   AppearanceConfig,
@@ -55,7 +56,12 @@ function setCmsTarget(el: HTMLElement, target: string, label: string) {
 function createSafeLink(url: string, openInNewTab?: boolean): HTMLAnchorElement {
   const a = document.createElement('a');
   a.href = isSafeUrl(url) ? url : '#';
-  if (openInNewTab && /^https?:\/\//i.test(a.href)) {
+  const isExternal = /^https?:\/\//i.test(a.href);
+  const isApk = /\.apk(?:[?#].*)?$/i.test(a.href);
+  if (isApk) {
+    a.setAttribute('download', 'swarr.prashant.apk');
+  }
+  if ((openInNewTab || isApk) && isExternal) {
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
   }
@@ -329,7 +335,7 @@ function renderHeader(
     actions.appendChild(ratingA);
   }
   if (navCfg.ctaVisible) {
-    const ctaA = createSafeLink(navCfg.ctaUrl);
+    const ctaA = createSafeLink(navCfg.ctaUrl, /^https?:\/\//i.test(navCfg.ctaUrl));
     ctaA.className = 'pill pill-solid pill-small';
     ctaA.appendChild(createSvgIcon('android', 'ic-android'));
     ctaA.appendChild(document.createTextNode(navCfg.ctaLabel));
@@ -1437,7 +1443,7 @@ if (isPreviewFrame) {
 
 // ── Hydrate Published CMS Content from Firestore on Load ────────────────────
 async function hydratePublicCms() {
-  if (isPreviewFrame) return; // Parent Live Editor pushes the active draft state
+  if (isPreviewFrame || !isFirebaseConfigured) return; // Parent Live Editor pushes draft state; static HTML serves when unconfigured
   try {
     const [published, mediaMap] = await Promise.all([
       loadPublishedSite(),
