@@ -33,7 +33,7 @@ jobs:
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358" || true
 
     - name: Cache Robolectric Android Runtime
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.m2/repository/org/robolectric
         key: robolectric-runtime-4.14.1
