@@ -29,7 +29,7 @@ dependencies {
   implementation(libs.kuromoji.ipadic)
   implementation(libs.tinypinyin)
   implementation("androidx.core:core-ktx:1.13.1")
-  api("com.mocharealm.accompanist:lyrics-core:0.5.0")
+  api("com.mocharealm.accompanist:lyrics-core:0.5.1")
   implementation(libs.hilt)
   ksp(libs.hilt.compiler)
 }
