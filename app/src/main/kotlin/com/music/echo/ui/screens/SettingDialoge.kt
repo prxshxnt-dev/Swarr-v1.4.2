@@ -422,7 +422,7 @@ private fun DesktopReleaseBannerCard(
           }
           Spacer(Modifier.height(2.dp))
           Text(
-            text = "Echo Music for your desktop",
+            text = "Swarr for your desktop",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )

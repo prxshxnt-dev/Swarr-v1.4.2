@@ -138,10 +138,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="echomusic" />
+                <data android:scheme="swarr" />
                 <data android:host="listen" />
             </intent-filter>
 
-            <!-- Echo Music Share Links -->
+            <!-- Swarr share links (the existing host is kept for backward compatibility) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -322,30 +323,7 @@
             </intent-filter>
         </activity-alias>
 
-        <activity-alias
-            android:name=".MainActivityEchoCat"
-            android:enabled="false"
-            android:exported="true"
-            android:icon="@mipmap/echo_cat_icon"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/echo_cat_icon_round"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
-        
-
-        
-        
-
-        
-
-        
-
-        <activity-alias
+<activity-alias
             android:name=".MainActivityBillieEilish"
             android:enabled="false"
             android:exported="true"
@@ -780,7 +758,7 @@
         <service
             android:name=".quicksettings.MusicRecognizerTileService"
             android:label="@string/qs_tile_music_recognizer"
-            android:icon="@drawable/ic_qs_echo_logo"
+            android:icon="@drawable/ic_qs_swarr_logo"
             android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

@@ -1398,7 +1398,7 @@ private fun EchoConnectQuickSwitcher(onDismiss: () -> Unit) {
 
   Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
     Text(
-      text = "Echo Connect",
+      text = "Swarr Connect",
       style = MaterialTheme.typography.titleMedium,
       color = MaterialTheme.colorScheme.onSurface,
       modifier = Modifier.padding(bottom = 10.dp),
@@ -1506,7 +1506,7 @@ private fun EchoConnectLanSection(onDismiss: () -> Unit) {
 
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
-      text = "Echo Connect",
+      text = "Swarr Connect",
       style = MaterialTheme.typography.titleMedium,
       fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onSurface,
@@ -1546,7 +1546,7 @@ private fun EchoConnectLanSection(onDismiss: () -> Unit) {
             modifier = Modifier.size(20.dp),
           )
           Text(
-            text = "Searching for Echo Music Desktop on your Wi-Fi...",
+            text = "Searching for Swarr Desktop on your Wi-Fi...",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )

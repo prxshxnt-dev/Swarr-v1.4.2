@@ -1,4 +1,4 @@
-/** Echo Music Project (C) 2026 Licensed under GPL-3.0 | See git history for contributors */
+/** Swarr application code (C) 2026, GPL-3.0. See git history for contributor attribution. */
 package echo.music.iad1tya.ui.screens
 
 import androidx.compose.animation.animateContentSize

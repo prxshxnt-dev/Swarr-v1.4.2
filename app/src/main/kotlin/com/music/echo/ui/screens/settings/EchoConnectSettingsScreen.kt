@@ -84,7 +84,7 @@ fun EchoConnectSettingsScreen(
 
   Column(modifier = Modifier.fillMaxSize()) {
     TopAppBar(
-      title = { Text("Echo Connect") },
+      title = { Text("Swarr Connect") },
       navigationIcon = {
         IconButton(
           onClick = navController::navigateUp,
@@ -134,7 +134,7 @@ fun EchoConnectSettingsScreen(
           }
           Column(modifier = Modifier.weight(1f)) {
             Text(
-              text = "Echo Connect",
+              text = "Swarr Connect",
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
             )
@@ -322,7 +322,7 @@ fun EchoConnectSettingsScreen(
               Material3SettingsItem(
                 icon = painterResource(R.drawable.ic_echo_connect),
                 title = { Text("Searching Wi-Fi...") },
-                description = { Text("Open Echo Music on your Desktop on the same Wi-Fi") },
+                description = { Text("Open Swarr Desktop on the same Wi-Fi") },
                 onClick = {},
               ),
             )

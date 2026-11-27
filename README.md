@@ -1,390 +1,211 @@
+﻿# Swarr
+
 <div align="center">
-  <img src="assets/banner.png" alt="Echo Music Logo"/>
-
-  <p><b>A modern Android music app with ad-free streaming, synced lyrics, offline playback, and an intuitive user experience.</b></p>
+  <img src="assets/banner.png" alt="Swarr" width="720" />
+  <p><strong>An open-source Android music player built around discovery, playback, lyrics, and a customizable listening experience.</strong></p>
+  <p>
+    <a href="https://github.com/prxshxnt-dev/Swarr/releases"><img src="https://img.shields.io/github/v/release/prxshxnt-dev/Swarr?display_name=tag" alt="Latest release" /></a>
+    <a href="https://github.com/prxshxnt-dev/Swarr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/prxshxnt-dev/Swarr" alt="License" /></a>
+    <a href="https://github.com/prxshxnt-dev/Swarr/actions"><img src="https://img.shields.io/github/actions/workflow/status/prxshxnt-dev/Swarr/android-build.yml?branch=main" alt="Android CI" /></a>
+  </p>
 </div>
 
----
+Swarr is an Android music client based on the upstream Echo Music open-source project. This repository contains the Android application source, its supporting modules, build configuration, documentation, and project-specific branding.
 
-## Achievements
-<a href="https://trendshift.io/repositories/160234?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-160234" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/160234" alt="EchoMusicApp%2FEcho-Music | Trendshift" width="250" height="55"/></a> <a href="https://trendshift.io/repositories/160234?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-160234" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/160234/daily?language=Kotlin" alt="EchoMusicApp%2FEcho-Music | Trendshift" width="250" height="55"/></a> <a href="https://trendshift.io/repositories/160234?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-160234" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/160234/monthly?language=Kotlin" alt="EchoMusicApp%2FEcho-Music | Trendshift" width="250" height="55"/></a>
+> **Project status:** The application source builds locally in the Universal FOSS configuration. The Android application ID is now `com.swarr.com`. This is a package-identity change from older Swarr/Echo Music builds; see [Upgrade and compatibility notes](#upgrade-and-compatibility-notes) before installing.
 
----
+## Contents
 
-## Overview
-
-Echo Music delivers a seamless, premium listening experience by leveraging YouTube Music's vast library — without the ads. It adds powerful extras including offline downloads, real-time synchronized lyrics, and environment-aware music recognition.
-
-> [!IMPORTANT]
-> **In-app OTA updates have been permanently removed.** Please update manually via the website. Echo Music is completely free and ad-free; the few ads shown during a manual download help support the ongoing development of this project. Please do not open issues requesting to bring this back. Thank you for your support!
-
----
-
-## Community
-
-**Discord**: [Join the Echo Music Discord server](https://discord.gg/Xt5hgsJJuA)
-
----
-
-## Sponsor
-
-[![Sponsor](https://readme.cash/i/qx6lmx2nwz.svg)](https://readme.cash/c/qx6lmx2nwz)
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Screenshots](#screenshots)
 - [Features](#features)
-- [Echo Connect (Cross-Device Sync & Handoff)](#echo-connect-cross-device-sync--handoff)
-- [320 kbps Audio Extension](#320-kbps-audio-extension)
-- [Lossless Audio Extension](#lossless-audio-extension)
-- [Installation & Setup](#installation--setup)
-- [Support the Project](#support-the-project)
-- [Contributors](#contributors)
-- [Special Thanks](#special-thanks)
-
----
-
-## Screenshots
-
-<div align="left">
-  <table style="margin: 0 auto; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Home Screen</b><br><br>
-        <img src="Screenshots/Home.png" alt="Home Screen" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Material Player</b><br><br>
-        <img src="Screenshots/Material%20you%20music%20page.png" alt="Material Player" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Apple Style Player</b><br><br>
-        <img src="Screenshots/Apple%20inspired%20music%20page.png" alt="Apple Style Player" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Synchronized Lyrics</b><br><br>
-        <img src="Screenshots/lyrics.png" alt="Synchronized Lyrics" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Search & Explore</b><br><br>
-        <img src="Screenshots/search%20page.png" alt="Search & Explore" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <b>Music Library</b><br><br>
-        <img src="Screenshots/library.png" alt="Music Library" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
-      </td>
-    </tr>
-  </table>
-</div>
-
----
+- [Screenshots](#screenshots)
+- [Project structure](#project-structure)
+- [Build from source](#build-from-source)
+- [Build variants](#build-variants)
+- [Firebase and optional services](#firebase-and-optional-services)
+- [In-app updates](#in-app-updates)
+- [Upgrade and compatibility notes](#upgrade-and-compatibility-notes)
+- [Contributing](#contributing)
+- [Developers](#developers)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
 ## Features
 
-### What's New
-
-> **Music DNA (New!)** — Instantly uncover the backstory of any track. Echo Music queries Genius for deep track annotations, and intelligently falls back to Wikipedia API extracts for regional or obscure tracks where crowd-sourced meanings are missing.
-
-<br>
-
-<details>
-<summary><b>Streaming & Playback</b></summary>
-<br>
-
-- **Ad-Free** — Stream without any interruptions.
-- **Lossless & Hi-Res Audio Streaming** — Stream uncompressed studio-quality FLAC/ALAC up to 24-bit/192kHz with the [lossless-extension](https://github.com/EchoMusicApp/lossless-extension).
-- **High-Quality 320 kbps Streaming** — Stream crystal-clear 320 kbps audio with the [320kbs-extension](https://github.com/EchoMusicApp/320kbs-extension).
-- **Data Saver Mode** — Reduce data consumption when streaming on cellular networks.
-- **Seamless Playback** — Switch effortlessly between audio-only and video modes.
-- **Background Playback** — Listen while using other apps or with the screen off.
-- **Offline Mode** — Download tracks, albums, and playlists via a dedicated download manager.
-- **Crossfade** — Smooth transitions between tracks.
-- **Canvas Animations** — Visual animations while playing music.
-
-</details>
-
-<details>
-<summary><b>Discovery & Echo Find</b></summary>
-<br>
-
-- **Echo Find** — Identify songs playing around you using advanced audio recognition.
-- **Echo Brain** — An intelligent, on-device engine that analyzes your listening momentum and auto-injects perfectly aligned tracks into your queue.
-- **Smart Recommendations** — Personalized suggestions based on your listening history.
-- **Comprehensive Browsing** — Explore Charts, Podcasts, Moods, and Genres.
-
-</details>
-
-<details>
-<summary><b>Lyrics</b></summary>
-<br>
-
-- **Multiple Lyric Animations** — Choose from various lyric display styles.
-- **Word-by-Word Lyrics** — Precise per-word synchronization.
-- **Lyrics+** — New lyrics provider for improved accuracy and coverage.
-- **AI Translation** — Built-in Google Translate integration for lyrics in any language.
-
-  For AI lyrics translation, select **API Route** in the AI settings, enter your [API key](https://www.api-route.com/api-keys), and choose a model available to that key. The preset uses `https://global.api-route.com/v1/chat/completions` with `claude-fable-5-1`; you can enter another exact model ID from the authenticated `/v1/models` catalog using the custom model option. Model availability depends on your key's group and permissions. See the [quickstart](https://www.api-route.com/docs/quickstart).
-
-</details>
-
-<details>
-<summary><b>Integrations</b></summary>
-<br>
-
-- **Music Sharing via Odesli** — Share songs as Song.link for cross-platform listening.
-- **Set as Ringtone** — Directly set any song as your device ringtone.
-
-</details>
-
-<details>
-<summary><b>Smart Playback</b></summary>
-<br>
-
-- **Pause on Mute** — Auto-pause when your device is muted.
-- **Resume on Bluetooth** — Playback resumes when headphones or earbuds reconnect.
-
-</details>
-
-<details>
-<summary><b>Customization</b></summary>
-<br>
-
-- **UI Density Scale** — Adjust interface spacing to your preference.
-- **High Refresh Rate Support** — Smoother UI and animations on supported displays.
-- **Fluid UI & Animations** — Material 3 Emphasized easing and GPU-accelerated lyrics for a silky smooth, lag-free experience.
-- **Hide Player Thumbnail** — Keep the player minimal without album art.
-- **Crop Album Art** — Adjust album art display to fit your style.
-- **Hide Video Songs** — Filter out video content from your feed.
-- **Hide YouTube Shorts** — Keep Shorts out of your music browsing.
-
-</details>
-
----
-
-## Echo Connect (Cross-Device Sync & Handoff)
-
-**Echo Connect** links **Echo Music (Android)** with **[Echo Music Desktop](https://github.com/EchoMusicApp/Desktop)** over your local Wi-Fi network — with zero cloud servers.
-
-### Key Capabilities
-- **6-Digit Device Pairing**: Open **Settings → Echo Connect** (right below **Account**) and tap your Desktop to generate a 6-digit code (auto-refreshes every 60s), or initiate pairing from Desktop and enter the code in the Android popup.
-- **Automatic Google Account Login**: Automatically signs Desktop into your YouTube Music Google account upon binding.
-- **Bidirectional Local & Spotify Playlist Sync**: Keeps locally created playlists synced between Android and Desktop with zero overlap/duplicates, and syncs your connected Spotify playlists to Desktop's Library.
-- **Podcast Progress Sync**: Merges episode timestamps and finished status across devices.
-- **5-Minute Auto-Sync & Force Sync**: Automatically syncs every 5 minutes in the background, with a **Force Sync** button and timestamped sync history log showing what synced and when.
-- **Seamless Playback Handoff & Remote Control**: Switch playback between **This Phone** and your paired Desktop from the player's audio output sheet or **Settings → Echo Connect**. Control play/pause, exact seek position, next/previous, volume, shuffle, and repeat from either device.
-
-📖 **Full Guide**: See [docs/ECHO_CONNECT.md](./docs/ECHO_CONNECT.md) for step-by-step setup, pairing, sync details, and troubleshooting.
-
----
-
-## 320 kbps Audio Extension
-
-Want to experience crystal-clear, high-bitrate **320 kbps** audio in Echo Music?
-
-By default, YouTube Music delivers standard streaming quality. Echo Music includes built-in support for third-party extension sources, allowing you to stream high-fidelity **320 kbps** audio directly within the app using the official 320 kbps extension!
-
-Visit the official repository to get started:  
-**[https://github.com/EchoMusicApp/320kbs-extension](https://github.com/EchoMusicApp/320kbs-extension)**
-
-### How to Enable 320 kbps Audio:
-
-1. **Visit the Extension Repository**:
-   - Go to [EchoMusicApp/320kbs-extension](https://github.com/EchoMusicApp/320kbs-extension).
-   - Follow the setup and deployment instructions in the repository to deploy or obtain your extension server endpoint.
-
-2. **Add the Server in Echo Music**:
-   - Open the Echo Music app on your Android device.
-   - Tap your profile avatar in the top-right corner to open the **Account** sheet.
-   - Tap **Extensions** to open the Extension Sources settings.
-   - Scroll down to the **Add new** section and tap **Add Custom Server**.
-   - Enter a name (such as `320kbps Audio`) and paste your server's endpoint URL.
-   - Save the server.
-
-3. **Set Playback Priority**:
-   - In the **Extensions** menu, ensure **Prefer Extension Audio** is toggled **ON**.
-   - With this enabled, Echo Music will automatically search and stream high-bitrate 320 kbps audio from your extension before falling back to YouTube Music.
-   - Enjoy studio-quality 320 kbps playback with real-time format and bitrate indicators on the now playing screen!
-
----
-
-## Lossless Audio Extension
-
-Want to experience studio-master **Lossless (FLAC / ALAC)** and **Hi-Res Audio** (up to 24-bit / 192 kHz) directly in Echo Music?
-
-Echo Music features a dedicated lossless audio pipeline with bit-perfect DAC pass-through, real-time Bluetooth codec telemetry (LDAC, aptX HD), and live format badges (`FLAC`, `Hi-Res`, `Bit-Perfect`). By connecting the official **Lossless Extension**, you can stream uncompressed, bit-perfect music from lossless providers directly within the app!
-
-Visit the official repository to get started:  
-**[https://github.com/EchoMusicApp/lossless-extension](https://github.com/EchoMusicApp/lossless-extension)**
-
-### How to Enable Lossless Audio:
-
-1. **Visit the Extension Repository**:
-   - Go to [EchoMusicApp/lossless-extension](https://github.com/EchoMusicApp/lossless-extension).
-   - Follow the setup and deployment instructions to deploy your lossless provider instance (e.g., via Vercel, Railway, Docker, or self-hosted server) or obtain your custom lossless endpoint URL.
-
-2. **Add the Lossless Server in Echo Music**:
-   - Open the Echo Music app on your Android device.
-   - Tap your profile avatar (or the **Settings** gear icon) to open the **Account / Settings** sheet.
-   - Tap **Extensions** to open the Extension Sources screen.
-   - Scroll down to the **Add new** section and tap **Add Custom Server**.
-   - Enter your server configuration:
-     - **Name**: e.g., `Lossless FLAC` or `Hi-Res Audio`
-     - **Server URL**: Paste your deployed extension endpoint (e.g., `https://your-lossless-server.vercel.app`).
-   - Tap **Done** to save the server.
-
-3. **Configure Playback Priority & Audio Pipeline**:
-   - In the **Extensions** menu, ensure **Prefer Extension Audio** is toggled **ON**.
-   - When enabled, Echo Music will prioritize searching and streaming uncompressed FLAC/ALAC audio from your lossless server before falling back to YouTube Music.
-   - *(Optional — Audiophile Hardware)*:
-     - **External USB DAC**: Connect a USB DAC via OTG to automatically activate Echo Music's **Bit-Perfect Audio Pipeline**, bypassing Android's OS resampling engine (`Bit-Perfect • 24-bit / 192 kHz`).
-     - **Hi-Res Bluetooth**: Connect headphones supporting LDAC, aptX HD, or LC3 to view real-time Bluetooth telemetry and the gold **Hi-Res** badge on the player.
-
-4. **Verify Lossless Playback**:
-   - Play any track and expand to the full player screen.
-   - Look for the format badge (e.g., `FLAC 16-bit / 44.1kHz` or `FLAC 24-bit / 96kHz`) next to the playback controls confirming that you are streaming true lossless audio!
-
----
-
-## Installation & Setup
-
-### Android Installation
-
-Download the latest pre-compiled APK from the [Releases Page](https://github.com/EchoMusicApp/Echo-Music/releases/latest).
-
-<details>
-<summary><b>Building from Source</b></summary>
-<br>
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/EchoMusicApp/Echo-Music.git
-   cd Echo-Music
-   ```
-
-2. **Configure Android SDK**
-   Create a `local.properties` file:
-
-   ```bash
-   echo "sdk.dir=/path/to/your/android/sdk" > local.properties
-   ```
-
-   _(For detailed paths on Windows/macOS/Linux, refer to [SETUP.md](SETUP.md))_
-
-3. **Firebase Configuration (Optional)**
-   Firebase is required for analytics and crash reporting. See the instructions in [SETUP.md](SETUP.md#3-configure-firebase-optional) for adding your `google-services.json`.
-
-4. **Build the Application**
-   To build the Universal Debug variant:
-   ```bash
-   ./gradlew assembleUniversalGmsDebug
-   ```
-
-   _(For optimized ARM64 builds, release builds, or other options, refer to [SETUP.md](SETUP.md))_
-
-</details>
-
----
-
-## Support the Project
-
-If Echo Music has been useful to you, consider supporting its development.
-
-<div align="left">
-  <table style="margin: 0 auto; border-collapse: collapse; border: none;">
-    <tr>
-      <td align="center" style="padding: 15px; border: none;">
-        <a href="https://buymeacoffee.com/iad1tya" style="text-decoration:none;"><img src="assets/bmac.png" alt="Buy Me A Coffee Logo" width="140" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/></a>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <a href="https://intradeus.github.io/http-protocol-redirector/?r=upi://pay?pa=iad1tya@upi&pn=Aditya%20Yadav&am=&tn=Thank%20You" style="text-decoration:none;"><img src="assets/UPI.png" alt="UPI Logo" width="140" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/></a>
-      </td>
-      <td align="center" style="padding: 15px; border: none;">
-        <a href="https://www.patreon.com/cw/iad1tya" style="text-decoration:none;"><img src="assets/patreon3.webp" alt="Patreon Logo" width="140" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/></a>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<br>
-
-<details>
-<summary><b>Cryptocurrency Options</b></summary>
-<br>
-
-| Network      | Address                                        |
-| :----------- | :--------------------------------------------- |
-| **Bitcoin**  | `bc1qcvyr7eekha8uytmffcvgzf4h7xy7shqzke35fy`   |
-| **Ethereum** | `0x51bc91022E2dCef9974D5db2A0e22d57B360e700`   |
-| **Solana**   | `9wjca3EQnEiqzqgy7N5iqS1JGXJiknMQv6zHgL96t94S` |
-
-</details>
-
----
-
-## Contributors
-
-Without the support of this incredible open-source community, none of this would be possible. Thank you to everyone who has contributed to Echo Music!
-
-<!-- readme: contributors -start -->
-<table>
-<tr><td align="center"><a href="https://github.com/iad1tya"><img src="https://avatars.githubusercontent.com/u/147871321?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/gerry02"><img src="https://avatars.githubusercontent.com/u/33490327?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/mdakashhossain1"><img src="https://avatars.githubusercontent.com/u/85729564?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/Roshan-aa11"><img src="https://avatars.githubusercontent.com/u/192568043?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/InlitX"><img src="https://avatars.githubusercontent.com/u/193412982?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/Mickael81"><img src="https://avatars.githubusercontent.com/u/184148670?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/PurveshShinde"><img src="https://avatars.githubusercontent.com/u/134372658?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/pranav6004"><img src="https://avatars.githubusercontent.com/u/156088278?v=4" width="60" height="60" /></a></td></tr>
-<tr><td align="center"><a href="https://github.com/ErrorxCode"><img src="https://avatars.githubusercontent.com/u/65817230?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/VardhmanSurana"><img src="https://avatars.githubusercontent.com/u/100058534?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/paarthjawalkar"><img src="https://avatars.githubusercontent.com/u/334091017?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/Rajendra0309"><img src="https://avatars.githubusercontent.com/u/103703747?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/soumya-99"><img src="https://avatars.githubusercontent.com/u/59480692?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/bivekk51"><img src="https://avatars.githubusercontent.com/u/115235822?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/kaunkrishna"><img src="https://avatars.githubusercontent.com/u/270065466?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/fahmid1603"><img src="https://avatars.githubusercontent.com/u/42404846?v=4" width="60" height="60" /></a></td></tr>
-<tr><td align="center"><a href="https://github.com/TanvirSdq"><img src="https://avatars.githubusercontent.com/u/112406045?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/Berserkr2k"><img src="https://avatars.githubusercontent.com/u/127702589?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/andrewvalletta"><img src="https://avatars.githubusercontent.com/u/137303110?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/DennyHo0917"><img src="https://avatars.githubusercontent.com/u/149746199?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/Felixkw12"><img src="https://avatars.githubusercontent.com/u/151852644?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/guilhermenovais"><img src="https://avatars.githubusercontent.com/u/61892041?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/mvanhorn"><img src="https://avatars.githubusercontent.com/u/455140?v=4" width="60" height="60" /></a></td><td align="center"><a href="https://github.com/pranavxdevops"><img src="https://avatars.githubusercontent.com/u/110167539?v=4" width="60" height="60" /></a></td></tr>
-<tr><td align="center"><a href="https://github.com/Thibaultjaigu"><img src="https://avatars.githubusercontent.com/u/84420566?v=4" width="60" height="60" /></a></td></tr>
-</table>
-<!-- readme: contributors -end -->
-
-
----
-
-## Special Thanks
-
-Echo Music stands on the shoulders of several excellent open-source projects. Sincere thanks to:
-
-| Project                                                                                                                   | Description                                         |
-| :------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------- |
-| **[Metrolist](https://github.com/MetrolistGroup/Metrolist)**                                                                | Foundational inspiration and architecture reference |
-| **[Vivi Music](https://github.com/vivizzz007/vivi-music)**                                                                | Spotify authentication architecture, nuance recovery mechanism, and token implementation |
-| **[ArchiveTune](https://github.com/koiverse/ArchiveTune)**                                                                | Material You UI inspiration                         |
-| **[Better Lyrics](https://better-lyrics.boidu.dev/)**                                                                     | Lyrics enhancement and synchronization              |
-| **[SimpMusic](https://github.com/maxrave-dev/SimpMusic)**                                                                 | Lyrics implementation reference                     |
-| **[Music Recognizer](https://github.com/aleksey-saenko/MusicRecognizer)**                                                 | Audio recognition (Echo Find)                       |
-| **[BravePipe](https://github.com/bravepipeproject/BravePipe)**                                                            | Decryption handling and backup playback engine      |
-
----
-
-## Legal Disclaimer & Terms of Use
-
-### 1. 100% Free, Open-Source & Strictly Non-Commercial
-
-Echo Music is a fully open-source project (FOSS) created purely for educational purposes and personal use. We do not sell this application, nor do we monetize it in any way. There are no advertisements, no premium features, no subscriptions, and no hidden fees within the app. This project has absolutely no commercial value or financial intent.
-
-### 2. A Custom Browser with Content Filtering
-
-Echo Music acts strictly as a specialized, third-party web browser and client. It simply parses the publicly available website content and APIs of YouTube and YouTube Music, rendering them in a custom user interface. The ad-free experience it provides is fundamentally no different from using a standard web browser (like Chrome, Firefox, or Brave) equipped with a common ad-blocking extension (such as uBlock Origin).
-
-### 3. Support Content Creators
-
-We deeply respect the hard work of artists, musicians, and content creators. We strongly encourage all users to subscribe to [YouTube Premium](https://www.youtube.com/premium). Purchasing a Premium subscription is the best way to financially support the creators you listen to and ensure the continued growth of the platform. Echo Music is built as a proof-of-concept for developers and enthusiasts, not to harm creators' revenues.
-
-### 4. No Hosting of Copyrighted Material
-
-We do not host, upload, distribute, or store any audio, video, or copyrighted media files on our own servers. All content accessed through this application is stored entirely on Google's/YouTube's servers and remains the property of their respective copyright owners. The app merely acts as a conduit to stream publicly accessible links.
-
-### 5. User Responsibility & Legal Contact
-
-The software is provided "AS IS", without warranty of any kind. The developers of Echo Music do not encourage or condone piracy. Users are solely responsible for ensuring their usage of this app complies with their local copyright laws and the Terms of Service of the platforms they access.
-
-Because we do not host any media files, we cannot process DMCA takedown requests for audio or video content. However, if you represent a copyright holder or have legal concerns regarding the open-source code itself, please contact us via email at: [hello@echomusic.fun](mailto:hello@echomusic.fun)
-
----
+- **Music discovery:** Search and browse music, charts, moods, genres, podcasts, and related content.
+- **Playback:** Background playback, queue management, crossfade, audio/video switching, and offline downloads.
+- **Lyrics:** Synchronized lyrics, word-level timing, multiple presentation styles, and optional translation providers.
+- **Listening tools:** Music recognition, listening history, recommendations, and listening summaries.
+- **Customization:** Material You styling, player layouts, interface density, artwork options, and configurable playback behaviour.
+- **Device integration:** Media notifications, Android system media controls, Bluetooth playback handling, and supported casting features in the GMS build.
+- **Swarr Connect:** Local-network pairing and playback handoff between the Android app and its compatible desktop client.
+
+Availability of individual features depends on the selected build variant, device, configured services, and upstream provider behaviour.
+
+## Screenshots
 
 <div align="center">
-  <p>Licensed under <a href="LICENSE">GPL-3.0</a></p>
+  <img src="Screenshots/Home.png" alt="Swarr home screen" width="220" />
+  <img src="Screenshots/Material%20you%20music%20page.png" alt="Swarr player" width="220" />
+  <img src="Screenshots/lyrics.png" alt="Synchronized lyrics" width="220" />
 </div>
+
+## Project structure
+
+This is the full Android source repository, not only a binary patch or an APK overlay.
+
+| Path | Purpose |
+| --- | --- |
+| `app/` | Android application, manifest, resources, UI, playback, and app integrations |
+| `core/`, `domain/`, `playback/` | Shared application, domain, and playback code |
+| `lyrics/`, `betterlyrics/`, `lrclib/`, `paxsenixlyrics/` | Lyrics providers and lyrics functionality |
+| `innertube/`, `youlyplus/`, `kugou/` | Music service and provider integrations |
+| `audio-dsp/`, `dsp-core/`, `usbaudio/` | Audio processing and device audio support |
+| `docs/` | Feature and integration documentation |
+| `fastlane/` | Android store metadata |
+| `scripts/` | Development and maintenance scripts |
+| `gradle/` | Gradle wrapper and version catalog |
+
+## Build from source
+
+### Requirements
+
+- Android Studio with a compatible Android SDK
+- JDK 21
+- Android SDK platform/build tools required by the project (see `app/build.gradle.kts`)
+- Git
+
+### 1. Clone
+
+```bash
+git clone https://github.com/prxshxnt-dev/Swarr.git
+cd Swarr
+```
+
+### 2. Configure the Android SDK
+
+Copy the local properties template and set the SDK path:
+
+```bash
+cp local.properties.template local.properties
+```
+
+Edit `local.properties`:
+
+```properties
+sdk.dir=/absolute/path/to/Android/Sdk
+```
+
+On Windows, use the path to your Android SDK, commonly under `%LOCALAPPDATA%\Android\Sdk`.
+
+### 3. Build a debug APK
+
+The FOSS build does not require Firebase configuration:
+
+```bash
+# macOS / Linux
+./gradlew :app:assembleUniversalFossDebug
+
+# Windows
+.\gradlew.bat :app:assembleUniversalFossDebug
+```
+
+The APK is written under:
+
+```
+app/build/outputs/apk/universalFoss/debug/
+```
+
+### 4. Run tests
+
+```bash
+./gradlew :app:testUniversalFossDebugUnitTest
+```
+
+Use `.gradlew.bat` instead of `./gradlew` on Windows. See [SETUP.md](SETUP.md) for additional environment details and troubleshooting.
+
+## Build variants
+
+Swarr uses two dimensions: ABI and service integration.
+
+| Variant | Purpose | Notes |
+| --- | --- | --- |
+| `UniversalFossDebug` | Local development and testing | FOSS build; no Google Play Services dependency |
+| `UniversalFossRelease` | FOSS release build | Requires the appropriate release signing configuration |
+| `UniversalGmsDebug` | Development with Google services | Requires a matching Firebase configuration when that integration is enabled |
+| `UniversalGmsRelease` | GMS release build | Requires matching Firebase configuration and release signing credentials |
+
+The debug application ID has the `.debug` suffix. Production uses `com.swarr.com`.
+
+## Firebase and optional services
+
+Firebase configuration is optional for the FOSS build. If you need Firebase analytics or crash reporting, create an Android app registration in the Firebase project for the exact application ID being built, download its `google-services.json`, and place it at `app/google-services.json`.
+
+- Production registration: `com.swarr.com`
+- Debug registration: `com.swarr.com.debug`
+
+A configuration generated for the old package ID will not match the new application ID. Do not commit private service credentials, signing files, API secrets, or your local `local.properties`.
+
+Some optional integrations require their own provider credentials or endpoints. Configure those locally as documented in [SETUP.md](SETUP.md).
+
+## In-app updates
+
+The in-app updater checks the Swarr GitHub Releases repository:
+
+[github.com/prxshxnt-dev/Swarr/releases](https://github.com/prxshxnt-dev/Swarr/releases)
+
+Before handing an APK to Android's installer, the current implementation checks the release asset SHA-256 digest, expected package ID, and trusted signing certificate. An update must therefore be published with:
+
+1. The expected production application ID, `com.swarr.com`.
+2. The same trusted signing certificate as the installed production app.
+3. A higher Android `versionCode` than the installed build.
+
+Do not publish a debug-signed APK as a production OTA update. A package-ID or signing-certificate mismatch is not an ordinary in-place update and will be rejected.
+
+## Upgrade and compatibility notes
+
+The move to `com.swarr.com` changes Android's application identity. Android treats it as a different app from earlier packages such as `echo.music.iad1tya` or `swarr.prashant`.
+
+- It cannot update those older installations in place.
+- Android keeps private app data scoped to the old package; installing this package does not automatically migrate playlists, preferences, or downloads.
+- Back up or export important data before switching packages.
+- Existing installations signed with a different certificate cannot be upgraded using an APK signed by a new key.
+
+The Kotlin namespace remains `echo.music.iad1tya` to avoid unnecessary changes to internal package declarations and integrations. The installed Android application ID is `com.swarr.com`.
+
+## Documentation
+
+- [Development setup](SETUP.md)
+- [Swarr Connect guide](docs/SWARR_CONNECT.md)
+- [Design notes](DESIGN.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Privacy policy](PRIVACY_POLICY.md)
+
+## Contributing
+
+Bug reports, fixes, and improvements are welcome. Before opening a pull request:
+
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+2. Keep changes focused and preserve existing playback, data, and integration behaviour.
+3. Run the relevant unit tests and build task.
+4. Include clear reproduction steps for bug fixes and screenshots for user-interface changes.
+
+Please report security issues according to [SECURITY.md](SECURITY.md), rather than posting sensitive details in a public issue.
+
+## Developers
+
+<div>
+  <a href="https://github.com/prxshxnt-dev"><img src="https://github.com/prxshxnt-dev.png?size=96" width="72" alt="Prashant GitHub avatar" /></a>
+  <a href="https://github.com/sachit1751-art"><img src="https://github.com/sachit1751-art.png?size=96" width="72" alt="Sachit GitHub avatar" /></a>
+</div>
+
+- **Prashant** — [GitHub](https://github.com/prxshxnt-dev)
+- **Sachit** — [GitHub](https://github.com/sachit1751-art)
+
+## Acknowledgements
+
+Swarr builds on the work of the open-source Android music community. Thank you to the maintainers and contributors of the upstream Echo Music project and the libraries and projects referenced throughout this repository. Their original notices and license terms remain applicable; see the source files and [LICENSE](LICENSE).
+
+## License
+
+Swarr is distributed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for the complete license text.

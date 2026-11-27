@@ -1,6 +1,8 @@
 package echo.music.iad1tya.echomusic.updater.downloadmanager
 
 import android.content.Context
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Environment
@@ -12,6 +14,7 @@ import echo.music.iad1tya.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.security.MessageDigest
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.zip.ZipInputStream
@@ -21,11 +24,26 @@ import kotlinx.coroutines.withContext
 class UpdateDownloadWorker(private val context: Context, workerParams: WorkerParameters) :
   CoroutineWorker(context, workerParams) {
 
+  private companion object {
+    const val EXPECTED_PACKAGE_ID = "com.swarr.com"
+    const val EXPECTED_SIGNER_SHA256 =
+      "6080943b677be39df6f40efd0c2ab14be3a70b93c8e4b7a3836dbe6a24edc233"
+  }
+
   override suspend fun doWork(): Result =
     withContext(Dispatchers.IO) {
       val apkUrl = inputData.getString("apk_url") ?: return@withContext Result.failure()
       val version = inputData.getString("version") ?: "unknown"
       val fileSize = inputData.getString("file_size") ?: ""
+      val expectedSha256 =
+        inputData.getString("sha256")?.lowercase()?.takeIf { it.matches(Regex("^[0-9a-f]{64}$")) }
+          ?: run {
+            DownloadNotificationManager.showDownloadFailed(
+              version,
+              "The release does not provide a valid SHA-256 digest. Installation was blocked.",
+            )
+            return@withContext Result.failure()
+          }
 
       try {
         val startingNotification =
@@ -124,6 +142,16 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
         inputStream.close()
         connection.disconnect()
 
+        val downloadedSha256 = sha256(downloadFile)
+        if (!downloadedSha256.equals(expectedSha256, ignoreCase = true)) {
+          downloadFile.delete()
+          DownloadNotificationManager.showDownloadFailed(
+            version,
+            "The downloaded file failed SHA-256 verification. Installation was blocked.",
+          )
+          return@withContext Result.failure()
+        }
+
         val finalFile =
           if (isZip) {
             val targetApkFile = File(downloadDir, "echomusic.apk")
@@ -161,6 +189,26 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
             downloadFile
           }
 
+        val packageInfo = getArchivePackageInfo(finalFile)
+        if (packageInfo?.packageName != EXPECTED_PACKAGE_ID) {
+          finalFile.delete()
+          DownloadNotificationManager.showDownloadFailed(
+            version,
+            "This release targets ${packageInfo?.packageName ?: "an unknown package"}, not $EXPECTED_PACKAGE_ID. Installation was blocked.",
+          )
+          return@withContext Result.failure()
+        }
+
+        val signerSha256 = getArchiveSignerSha256(packageInfo)
+        if (!signerSha256.equals(EXPECTED_SIGNER_SHA256, ignoreCase = true)) {
+          finalFile.delete()
+          DownloadNotificationManager.showDownloadFailed(
+            version,
+            "The release signing certificate does not match the trusted Swarr certificate. Installation was blocked.",
+          )
+          return@withContext Result.failure()
+        }
+
         if (version.startsWith("nightly-r")) {
           val runNumberString = version.removePrefix("nightly-r")
           val runNumber = runNumberString.toIntOrNull()
@@ -188,4 +236,42 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
         Result.failure()
       }
     }
+
+  private fun sha256(file: File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().buffered().use { input ->
+      val buffer = ByteArray(16 * 1024)
+      while (true) {
+        val count = input.read(buffer)
+        if (count < 0) break
+        digest.update(buffer, 0, count)
+      }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
+  }
+
+  @Suppress("DEPRECATION")
+  private fun getArchivePackageInfo(file: File): PackageInfo? {
+    val flags =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        PackageManager.GET_SIGNING_CERTIFICATES
+      } else {
+        PackageManager.GET_SIGNATURES
+      }
+    return context.packageManager.getPackageArchiveInfo(file.absolutePath, flags)
+  }
+
+  @Suppress("DEPRECATION")
+  private fun getArchiveSignerSha256(packageInfo: PackageInfo): String? {
+    val signatures =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        packageInfo.signingInfo?.apkContentsSigners
+      } else {
+        packageInfo.signatures
+      }
+    val signer = signatures?.singleOrNull() ?: return null
+    return MessageDigest.getInstance("SHA-256")
+      .digest(signer.toByteArray())
+      .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+  }
 }

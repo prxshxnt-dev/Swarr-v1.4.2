@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Focused regression for the #861 insertion-position fix (Echo Music).
+"""Focused regression for the #861 insertion-position fix (Swarr).
 
 Consumes ACTUAL production artifacts from the current checkout:
   - the playlist_song_map CREATE TABLE (extracted verbatim from MusicDatabase.kt)

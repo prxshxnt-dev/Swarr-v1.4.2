@@ -85,7 +85,7 @@ fun UpdateSettings(
     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
       try {
         val url =
-          java.net.URL("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases/latest")
+          java.net.URL("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
         val json = url.openStream().bufferedReader().use { it.readText() }
         val targetRelease = JSONObject(json)
         releaseNotes = targetRelease.getString("body")
@@ -134,7 +134,7 @@ fun UpdateSettings(
               }
             },
             onClick = {
-              context.safeOpenUri("https://echomusic.fun")
+              context.safeOpenUri("https://github.com/prxshxnt-dev/Swarr/releases/latest")
             },
           ),
         ),
@@ -142,7 +142,7 @@ fun UpdateSettings(
 
     Text(
       text =
-        "To download updates, you will be redirected to our official site containing ads. This helps fund the app's development. Thank you for your support!",
+        "Swarr updates are published through the official GitHub Releases page.",
       style = MaterialTheme.typography.bodySmall,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),

@@ -368,7 +368,7 @@
     <string name="backup_create_failed">ব্যাকআপ তৈরি করা যায়নি</string>
     <string name="restore_failed">ব্যাকআপ পুনরুদ্ধার করা যায়নি</string>
     <string name="discord_integration">Discord ইন্টিগ্রেশন</string>
-    <string name="discord_information">Echo Music আপনার Discord অ্যাকাউন্টের স্ট্যাটাস সেট করতে KizzyRPC লাইব্রেরি ব্যবহার করে। এতে Discord Gateway সংযোগ ব্যবহৃত হয়, যা Discord-এর পরিষেবার শর্তাবলীর লঙ্ঘন হিসেবে বিবেচিত হতে পারে। তবে এ কারণে কোনো ব্যবহারকারীর অ্যাকাউন্ট স্থগিত হওয়ার ঘটনা জানা যায়নি। নিজ দায়িত্বে ব্যবহার করুন।\nEcho Music শুধু আপনার টোকেন সংগ্রহ করবে এবং বাকি সবকিছু লোকালভাবে সংরক্ষিত থাকবে।</string>
+    <string name="discord_information">Swarr আপনার Discord অ্যাকাউন্টের স্ট্যাটাস সেট করতে KizzyRPC লাইব্রেরি ব্যবহার করে। এতে Discord Gateway সংযোগ ব্যবহৃত হয়, যা Discord-এর পরিষেবার শর্তাবলীর লঙ্ঘন হিসেবে বিবেচিত হতে পারে। তবে এ কারণে কোনো ব্যবহারকারীর অ্যাকাউন্ট স্থগিত হওয়ার ঘটনা জানা যায়নি। নিজ দায়িত্বে ব্যবহার করুন।\nSwarr শুধু আপনার টোকেন সংগ্রহ করবে এবং বাকি সবকিছু লোকালভাবে সংরক্ষিত থাকবে।</string>
     <string name="dismiss">বন্ধ করুন</string>
     <string name="options">বিকল্প</string>
     <string name="preview">প্রিভিউ</string>
@@ -394,7 +394,7 @@
     <string name="listen_together_smart_resync">স্মার্ট নেটওয়ার্ক পুনঃসিঙ্ক</string>
     <string name="listen_together_smart_resync_desc">সংযোগ বিচ্ছিন্ন হওয়ার পর স্বয়ংক্রিয়ভাবে হোস্টের সঙ্গে সিঙ্ক করুন</string>
     <string name="spotify_import_title">Spotify থেকে ইমপোর্ট করুন</string>
-    <string name="spotify_import_desc">Spotify সংযুক্ত করুন, প্লেলিস্ট বেছে নিন এবং সেগুলো লোকাল Echo Music প্লেলিস্টে মিরর করুন।</string>
+    <string name="spotify_import_desc">Spotify সংযুক্ত করুন, প্লেলিস্ট বেছে নিন এবং সেগুলো লোকাল Swarr প্লেলিস্টে মিরর করুন।</string>
     <string name="spotify_connect">Spotify সংযুক্ত করুন</string>
     <string name="spotify_refresh">Spotify লাইব্রেরি রিফ্রেশ করুন</string>
     <string name="spotify_select_sources">Spotify প্লেলিস্ট বেছে নিন</string>
@@ -446,7 +446,7 @@
     <string name="recognition_notification_processing">শনাক্ত করা হচ্ছে…</string>
     <string name="recognition_notification_no_match">কোনো মিল পাওয়া যায়নি</string>
     <string name="recognition_notification_failed">শনাক্তকরণ ব্যর্থ হয়েছে</string>
-    <string name="listen_on_echo_music">Echo Music-এ শুনুন</string>
+    <string name="listen_on_echo_music">Swarr-এ শুনুন</string>
     <string name="qs_tile_music_recognizer">সংগীত শনাক্ত করুন</string>
     <string name="listenbrainz_scrobbling">ListenBrainz স্ক্রবলিং</string>
     <string name="listenbrainz_scrobbling_description">আপনার শোনা ট্র্যাকগুলো স্বয়ংক্রিয়ভাবে ListenBrainz-এ জমা দিন</string>
@@ -600,7 +600,7 @@
     <string name="display_density_desc">ডিসপ্লে ডেনসিটি সেটিংস পরিচালনা করুন</string>
     <string name="download_quality_title_desc">ডাউনলোড কোয়ালিটি সেটিংস পরিচালনা করুন</string>
     <string name="downloaded_songs_desc">ডাউনলোড করা গান সেটিংস পরিচালনা করুন</string>
-    <string name="echomusic_1_desc">Echo Music (ফ্লুইড) সেটিংস পরিচালনা করুন</string>
+    <string name="echomusic_1_desc">Swarr (ফ্লুইড) সেটিংস পরিচালনা করুন</string>
     <string name="enable_desc">চালু বা বন্ধ করুন</string>
     <string name="enable_authentication_desc">অথেনটিকেশন চালু বা বন্ধ করুন</string>
     <string name="enable_dynamic_theme_desc">ডায়নামিক থিম চালু বা বন্ধ করুন</string>
@@ -800,14 +800,14 @@
         <item quantity="one">%1$d জন শিল্পী ম্যাপ করা হয়েছে</item>
         <item quantity="other">%1$d জন শিল্পী ম্যাপ করা হয়েছে</item>
     </plurals>
-    <string name="echo_brain_beta">Echo Brain (বেটা)</string>
+    <string name="echo_brain_beta">Swarr Brain (বেটা)</string>
     <string name="echo_brain_data_management">ডেটা ব্যবস্থাপনা</string>
     <string name="echo_brain_discovered_genres">আবিষ্কৃত ঘরানা</string>
     <plurals name="echo_brain_distinct_genres_identified">
         <item quantity="one">%1$dটি স্বতন্ত্র ঘরানা শনাক্ত করা হয়েছে</item>
         <item quantity="other">%1$dটি স্বতন্ত্র ঘরানা শনাক্ত করা হয়েছে</item>
     </plurals>
-    <string name="echo_brain_enable">Echo Brain চালু করুন</string>
+    <string name="echo_brain_enable">Swarr Brain চালু করুন</string>
     <string name="echo_brain_enable_desc">আপনার শোনার অভ্যাসের ওপর ভিত্তি করে স্বয়ংক্রিয়ভাবে AI রেকমেন্ডেশন যোগ করুন</string>
     <string name="echo_brain_export_failed">এক্সপোর্ট ব্যর্থ হয়েছে</string>
     <string name="echo_brain_export_profile">প্রোফাইল এক্সপোর্ট করুন</string>

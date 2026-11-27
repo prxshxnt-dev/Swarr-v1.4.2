@@ -587,7 +587,7 @@ class MainActivity : ComponentActivity() {
         delay(2000L)
         checkForUpdate(
           context = context,
-          onSuccess = { latestVersion, isAvailable, changelog, _, _, description, _, _ ->
+          onSuccess = { latestVersion, isAvailable, changelog, _, _, description, _, _, _ ->
             val currentVersion = BuildConfig.VERSION_NAME
             Log.d(
               "UpdateCheck",
@@ -651,7 +651,7 @@ class MainActivity : ComponentActivity() {
 
             val notification =
               androidx.core.app.NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(R.drawable.echomusicnotification) // Use correct transparent echo icon
+                .setSmallIcon(R.drawable.swarr_notification_mark)
                 .setContentTitle("Happy Birthday Aditya!")
                 .setContentText("Today is the developer's birthday!")
                 .setLargeIcon(bitmap)
@@ -1200,7 +1200,7 @@ class MainActivity : ComponentActivity() {
 
         val currentTitle =
           when (navBackStackEntry?.destination?.route) {
-            Screens.Home.route -> "Echo Music"
+            Screens.Home.route -> "Swarr"
             Screens.Search.route -> stringResource(R.string.search)
             Screens.Library.route -> stringResource(R.string.filter_library)
             Screens.ListenTogether.route -> stringResource(R.string.together)
@@ -1888,7 +1888,7 @@ class MainActivity : ComponentActivity() {
                     androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                 ) {
                   Text(
-                    "Enter the 6-digit Echo Connect code shown on ${pairReq.peer.name} to bind devices and sync.",
+                    "Enter the 6-digit Swarr Connect code shown on ${pairReq.peer.name} to bind devices and sync.",
                   )
                   androidx.compose.material3.OutlinedTextField(
                     value = codeInput,

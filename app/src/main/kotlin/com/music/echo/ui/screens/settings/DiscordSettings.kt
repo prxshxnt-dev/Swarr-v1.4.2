@@ -272,7 +272,7 @@ fun DiscordSettings(
   val (button2Label) =
     rememberPreference(
       key = DiscordActivityButton2LabelKey,
-      defaultValue = "Go to Echo Music",
+      defaultValue = "Go to Swarr",
     )
   val (button2Enabled) =
     rememberPreference(
@@ -297,7 +297,7 @@ fun DiscordSettings(
   val (button2CustomUrl) =
     rememberPreference(
       key = DiscordActivityButton2CustomUrlKey,
-      defaultValue = "https://github.com/EchoMusicApp/Echo-Music",
+      defaultValue = "https://github.com/prxshxnt-dev/Swarr",
     )
 
   val (activityType, onActivityTypeChange) =
@@ -1283,10 +1283,10 @@ fun RichPresence(
   button1Enabled: Boolean = true,
   button1UrlSource: String = "songurl",
   button1CustomUrl: String = "",
-  button2Label: String = "Go to Echo Music",
+  button2Label: String = "Go to Swarr",
   button2Enabled: Boolean = true,
   button2UrlSource: String = "custom",
-  button2CustomUrl: String = "https://github.com/EchoMusicApp/Echo-Music",
+  button2CustomUrl: String = "https://github.com/prxshxnt-dev/Swarr",
   isPlaying: Boolean = false,
 ) {
   val context = LocalContext.current

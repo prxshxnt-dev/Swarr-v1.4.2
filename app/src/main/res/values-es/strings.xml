@@ -437,7 +437,7 @@
     <string name="restore_failed">Error al restaurar la copia de seguridad</string>
 
     <string name="discord_integration">Integración con Discord</string>
-    <string name="discord_information">echomusic utiliza la biblioteca KizzyRPC para actualizar el estado de tu cuenta de Discord. Esto implica conectarse a Discord Gateway, lo cual podría considerarse una infracción de los Términos de Servicio de Discord. Sin embargo, no se conocen casos de cuentas suspendidas por este motivo. Úsalo bajo tu propia responsabilidad.\n\nechomusic solo extraerá tu token y todo lo demás se guarda localmente.</string>
+    <string name="discord_information">Swarr utiliza la biblioteca KizzyRPC para actualizar el estado de tu cuenta de Discord. Esto implica conectarse a Discord Gateway, lo cual podría considerarse una infracción de los Términos de Servicio de Discord. Sin embargo, no se conocen casos de cuentas suspendidas por este motivo. Úsalo bajo tu propia responsabilidad.\n\nechomusic solo extraerá tu token y todo lo demás se guarda localmente.</string>
     <string name="dismiss">Descartar</string>
     <string name="options">Opciones</string>
     <string name="preview">Vista previa</string>
@@ -465,7 +465,7 @@
     <string name="listen_together_smart_resync">Resincronización de red inteligente</string>
     <string name="listen_together_smart_resync_desc">Sincroniza de nuevo con el anfitrión automáticamente tras un corte de conexión</string>
     <string name="spotify_import_title">Importar desde Spotify</string>
-    <string name="spotify_import_desc">Conecta Spotify, elige tus listas de reproducción y refléjalas en listas locales de Echo Music.</string>
+    <string name="spotify_import_desc">Conecta Spotify, elige tus listas de reproducción y refléjalas en listas locales de Swarr.</string>
     <string name="spotify_connect">Conectar Spotify</string>
     <string name="spotify_refresh">Actualizar biblioteca de Spotify</string>
     <string name="spotify_select_sources">Seleccionar listas de Spotify</string>
@@ -518,7 +518,7 @@
     <string name="recognition_notification_processing">Identificando…</string>
     <string name="recognition_notification_no_match">No se encontraron coincidencias</string>
     <string name="recognition_notification_failed">Error en el reconocimiento</string>
-    <string name="listen_on_echo_music">Escuchar en Echo Music</string>
+    <string name="listen_on_echo_music">Escuchar en Swarr</string>
     <string name="qs_tile_music_recognizer">Reconocer música</string>
     <string name="listenbrainz_scrobbling">Scrobbling en ListenBrainz</string>
     <string name="listenbrainz_scrobbling_description">Envía automáticamente las pistas que escuchas a ListenBrainz</string>
@@ -873,20 +873,20 @@
     <string name="listen_together_logs_desc">Consulta los registros de conexión de Escuchar juntos</string>
     <string name="listen_together_choose_server_desc">Elige el servidor para las sesiones de Escuchar juntos</string>
 
-    <!-- Echo Brain -->
+    <!-- Swarr Brain -->
     <string name="echo_brain_analyzed_artists">Artistas analizados</string>
     <plurals name="echo_brain_artists_mapped">
         <item quantity="one">%1$d artista mapeado</item>
         <item quantity="other">%1$d artistas mapeados</item>
     </plurals>
-    <string name="echo_brain_beta">Echo Brain (Beta)</string>
+    <string name="echo_brain_beta">Swarr Brain (Beta)</string>
     <string name="echo_brain_data_management">Gestión de datos</string>
     <string name="echo_brain_discovered_genres">Géneros descubiertos</string>
     <plurals name="echo_brain_distinct_genres_identified">
         <item quantity="one">%1$d género distinto identificado</item>
         <item quantity="other">%1$d géneros distintos identificados</item>
     </plurals>
-    <string name="echo_brain_enable">Activar Echo Brain</string>
+    <string name="echo_brain_enable">Activar Swarr Brain</string>
     <string name="echo_brain_enable_desc">Añade automáticamente recomendaciones de IA basadas en tus hábitos de escucha</string>
     <string name="echo_brain_export_failed">Error al exportar</string>
     <string name="echo_brain_export_profile">Exportar perfil</string>

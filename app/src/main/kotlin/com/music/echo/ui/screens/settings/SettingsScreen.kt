@@ -149,15 +149,15 @@ fun SettingsScreen(
       }
 
       if (
-        "echo connect".contains(searchLower) ||
+        "swarr connect".contains(searchLower) ||
           "sync".contains(searchLower) ||
           "desktop".contains(searchLower)
       ) {
         add(
           Material3SettingsItem(
-            isHighlighted = (highlightKey == "Echo Connect"),
+            isHighlighted = (highlightKey == "Swarr Connect"),
             icon = painterResource(R.drawable.ic_echo_connect),
-            title = { Text("Echo Connect") },
+            title = { Text("Swarr Connect") },
             description = { Text("Pair with Desktop, sync account, playlists & playback") },
             onClick = { navController.navigate("settings/echo_connect") },
           ),
@@ -457,7 +457,7 @@ fun SettingsScreen(
       Spacer(modifier = Modifier.height(16.dp))
 
       // Let's just create groups manually using itemsList which preserves order
-      val accountGroup = itemsList.take(3) // Account, Echo Connect, AI
+      val accountGroup = itemsList.take(3) // Account, Swarr Connect, AI
       val listeningSummaryGroup = itemsList.drop(3).take(2) // Listening Summary, Echo Wrapped
       val playerGroup = itemsList.drop(5).take(4) // Appearance, Player, Music Flow, Listen Together
       val dataGroup = itemsList.drop(9).take(4) // Content, Privacy, Storage, Backup

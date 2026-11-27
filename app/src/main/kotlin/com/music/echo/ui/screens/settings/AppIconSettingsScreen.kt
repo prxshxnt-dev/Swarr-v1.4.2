@@ -138,12 +138,6 @@ fun AppIconSettingsScreen(
             R.mipmap.crazy_blue_icon,
           ),
           AppIconOption(
-            AppIconType.ECHO_CAT,
-            "Echo Cat",
-            "A playful cat by Alarp_Svc",
-            R.mipmap.echo_cat_icon,
-          ),
-          AppIconOption(
             AppIconType.LEGACY,
             "Legacy Icon",
             "The OG Monochrome Icon",

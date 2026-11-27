@@ -1,4 +1,4 @@
-# AGENT.md - Echo Music
+# AGENT.md - Swarr
 
 Context file for AI agents (Antigravity, Claude Code, etc.) working in this repo.
 Keep this file up to date as the project evolves — it's the fastest way to give
@@ -73,7 +73,7 @@ All UI work — new screens, new components, and edits to existing ones —
 applying standard Material Design 3 guidelines or Material You.
 
 We maintain a dedicated **[DESIGN.md](DESIGN.md)** file which serves as the central
-hub for all design decisions, component usage, and style choices in the Echo Music codebase.
+hub for all design decisions, component usage, and style choices in the Swarr codebase.
 
 **Key Requirements:**
 - **Clean and Minimal:** Emphasize the Nothing OS 5.0 aesthetic. Focus on high-contrast, typography-driven layouts, monochrome or minimal color palettes, and distinct geometry.
@@ -104,15 +104,15 @@ If a new feature needs a UI pattern not covered in `DESIGN.md`, create a minimal
 
 ## What this app is
 
-Echo Music is a native **Android** music streaming client (Kotlin + Jetpack
+Swarr is a native **Android** music streaming client (Kotlin + Jetpack
 Compose) that streams from YouTube Music's catalog ad-free, and layers on
-offline downloads, real-time synced lyrics, music recognition ("Echo Find"),
+offline downloads, real-time synced lyrics, music recognition ("Swarr Find"),
 podcasts, local media playback, Spotify import, "Listen Together" (synced
 group listening), Discord Rich Presence, and more. It ships as a single
 **GMS** build variant (Google Cast + Firebase enabled) — the previous FOSS
 (no-Google-services) flavor has been removed. See "Build variants" below.
 
-Package/namespace: `echo.music.iad1tya` (app module). Application ID matches.
+Internal namespace: `echo.music.iad1tya` (kept stable for existing class names and internal integrations). Production application ID: `com.swarr.com`; debug application ID: `com.swarr.com.debug`.
 
 ## Tech stack
 
@@ -156,7 +156,7 @@ mostly-independent feature/integration:
 | `:lyrics` | Lyrics orchestration — LyricsHelper, LyricsEntry, LyricsUtils, all provider impls, AI translation |
 | `:innertube` | YouTube Music InnerTube API client (the core music source) |
 | `:kugou`, `:lrclib`, `:betterlyrics`, `:youlyplus`, `:paxsenixlyrics`, `:simpmusic` | Individual lyrics source providers (each consumed by `:lyrics`) |
-| `:shazamkit` | Music recognition ("Echo Find") |
+| `:shazamkit` | Music recognition ("Swarr Find") |
 | `:canvas`, `:echomusiccanvas`, `:applecanvas` | Canvas-style looping video backgrounds for tracks (different providers) |
 | `:artistvideo` | Artist video features |
 | `:unison` | Cross-cutting shared utility module (check source before editing) |
@@ -190,7 +190,7 @@ lyrics/         Lyrics orchestration (aggregates the lyrics provider modules)
 models/         Shared data models
 playback/       Media3/ExoPlayer service, download manager, queueing, audio
 quicksettings/  Android quick settings tile
-recognition/    Music recognition (Echo Find) app-side logic
+recognition/    Music recognition (Swarr Find) app-side logic
 spotify/        Spotify API integration
 spotifyimport/  Import playlists/tracks from Spotify
 ui/

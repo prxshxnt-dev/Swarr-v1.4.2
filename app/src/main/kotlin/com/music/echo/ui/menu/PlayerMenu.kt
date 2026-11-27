@@ -596,7 +596,7 @@ fun PlayerMenu(
             )
             add(
               Material3MenuItemData(
-                title = { Text(text = "Echo Connect") },
+                title = { Text(text = "Swarr Connect") },
                 icon = {
                   Icon(
                     painter = painterResource(R.drawable.ic_echo_connect),

@@ -1,6 +1,6 @@
-# Setup Instructions
+﻿# Setup Instructions
 
-This document provides instructions for setting up the Echo Music project for development.
+This document provides instructions for setting up the Swarr project for development.
 
 ## Prerequisites
 
@@ -14,8 +14,8 @@ This document provides instructions for setting up the Echo Music project for de
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/EchoMusicApp/Echo-Music.git
-cd Echo-Music
+git clone https://github.com/prxshxnt-dev/Swarr.git
+cd Swarr
 ```
 
 ### 2. Configure Local Properties
@@ -74,7 +74,7 @@ KEY_PASSWORD=your_key_password
 
 Open the project in Android Studio or build from the command line.
 
-Echo Music builds as a **GMS** variant with Cast and Firebase support.
+Swarr builds as a **GMS** variant with Cast and Firebase support.
 
 ```bash
 # Debug build
@@ -88,7 +88,7 @@ Echo Music builds as a **GMS** variant with Cast and Firebase support.
 
 ### 6. Configure AI Translation (Optional)
 
-Echo Music supports AI-powered lyrics translation. You can configure this in **Settings -> AI Settings**.
+Swarr supports AI-powered lyrics translation. You can configure this in **Settings -> AI Settings**.
 
 #### Option A: Using OpenRouter (Default)
 
@@ -122,7 +122,7 @@ These files are already listed in `.gitignore` and should never be committed to 
 ### Template Files (Safe to commit)
 
 - `local.properties.template` - Template for local properties
-- `app/google-services.json` - Optional Firebase configuration
+- `app/google-services.json` - Optional Firebase configuration (keep local; do not commit credentials)
 
 ## Troubleshooting
 

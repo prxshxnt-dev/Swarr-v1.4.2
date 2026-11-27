@@ -117,6 +117,7 @@ sealed class EchoUpdateStatus {
     val description: String?,
     val imageUrl: String?,
     val apkUrl: String?,
+    val apkSha256: String?,
   ) : EchoUpdateStatus()
 
   data class NoUpdate(val version: String) : EchoUpdateStatus()
@@ -193,7 +194,7 @@ fun UpdateScreen(navController: NavHostController) {
       delay(1000L)
       checkForUpdate(
         context = context,
-        onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl ->
+        onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl, apkSha256 ->
           saveLastCheckedTime(
             context,
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")),
@@ -209,6 +210,7 @@ fun UpdateScreen(navController: NavHostController) {
                 description = description,
                 imageUrl = imageUrl,
                 apkUrl = apkUrl,
+                apkSha256 = apkSha256,
               )
             } else {
               EchoUpdateStatus.NoUpdate(tag)
@@ -345,7 +347,7 @@ fun UpdateScreen(navController: NavHostController) {
                     } else {
                       val urlToDownload =
                         currentStatus.apkUrl
-                          ?: "https://github.com/EchoMusicApp/Echo-Music/releases/download/${currentStatus.version}/echomusic.apk"
+                          ?: "https://github.com/prxshxnt-dev/Swarr/releases/latest"
 
                       val constraints =
                         Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
@@ -357,6 +359,7 @@ fun UpdateScreen(navController: NavHostController) {
                               "apk_url" to urlToDownload,
                               "version" to currentStatus.version,
                               "file_size" to currentStatus.size,
+                              "sha256" to currentStatus.apkSha256,
                             ),
                           )
                           .setConstraints(constraints)
@@ -669,12 +672,13 @@ suspend fun checkForUpdate(
       description: String?,
       imageUrl: String?,
       apkUrl: String?,
+      apkSha256: String?,
     ) -> Unit,
   onError: () -> Unit,
 ) {
   withContext(Dispatchers.IO) {
     try {
-      val url = URL("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases/latest")
+      val url = URL("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
       val json = url.openStream().bufferedReader().use { it.readText() }
       val targetRelease = JSONObject(json)
 
@@ -694,7 +698,7 @@ suspend fun checkForUpdate(
         try {
           val changelogUrl =
             URL(
-              "https://github.com/EchoMusicApp/Echo-Music/releases/download/$tagWithPrefix/changelog.json",
+              "https://github.com/prxshxnt-dev/Swarr/releases/download/$tagWithPrefix/changelog.json",
             )
           val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
           val changelogData = JSONObject(changelogJson)
@@ -734,6 +738,7 @@ suspend fun checkForUpdate(
 
         var apkSizeInMB = ""
         var apkDownloadUrl = ""
+        var apkSha256: String? = null
         for (j in 0 until assets.length()) {
           val asset = assets.getJSONObject(j)
           val assetName = asset.getString("name")
@@ -744,6 +749,8 @@ suspend fun checkForUpdate(
             val apkSizeInBytes = asset.getLong("size")
             apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
             apkDownloadUrl = asset.getString("browser_download_url")
+            apkSha256 = asset.optString("digest").removePrefix("sha256:")
+              .takeIf { it.matches(Regex("^[0-9a-fA-F]{64}$")) }
             break
           }
         }
@@ -759,6 +766,7 @@ suspend fun checkForUpdate(
               description,
               imageUrl,
               apkDownloadUrl,
+              apkSha256,
             )
           }
           return@withContext
@@ -766,7 +774,7 @@ suspend fun checkForUpdate(
       }
 
       withContext(Dispatchers.Main) {
-        onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
+        onSuccess(currentVersion, false, emptyList(), "", "", null, null, null, null)
       }
     } catch (e: Exception) {
       Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
@@ -814,7 +822,7 @@ suspend fun fetchChangelogForVersion(currentVersion: String): WhatsNewInfo? =
     try {
       val cleanCurrent = currentVersion.removePrefix("b").removePrefix("v").trim()
       val releasesJson =
-        openTimedStream("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases")
+        openTimedStream("https://api.github.com/repos/prxshxnt-dev/Swarr/releases")
           .bufferedReader()
           .use { it.readText() }
       val releases = JSONArray(releasesJson)
@@ -836,7 +844,7 @@ suspend fun fetchChangelogForVersion(currentVersion: String): WhatsNewInfo? =
       try {
         val changelogJson =
           openTimedStream(
-              "https://github.com/EchoMusicApp/Echo-Music/releases/download/$tag/changelog.json",
+              "https://github.com/prxshxnt-dev/Swarr/releases/download/$tag/changelog.json",
             )
             .bufferedReader()
             .use { it.readText() }

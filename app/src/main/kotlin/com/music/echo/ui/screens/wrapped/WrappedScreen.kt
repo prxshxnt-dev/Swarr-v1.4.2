@@ -338,7 +338,7 @@ fun WrappedScreen(
             }
           }
 
-          // Top Header: Echo Music Logo + Wordmark + Year Selector + Controls
+          // Top Header: Swarr logo + Wordmark + Year Selector + Controls
           Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -351,12 +351,12 @@ fun WrappedScreen(
             ) {
               Image(
                 painter = painterResource(R.drawable.ic_launcher_nobg),
-                contentDescription = "Echo Music Logo",
+                contentDescription = "Swarr logo",
                 colorFilter = ColorFilter.tint(currentTheme.logoTint),
                 modifier = Modifier.size(24.dp),
               )
               Text(
-                "Echo Music",
+                "Swarr",
                 style =
                   MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Black,
@@ -643,7 +643,7 @@ private fun IntroSlideSpotify(
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
       Text(
         text =
-          "Every beat, replay, and late-night obsession that soundtracked your life on Echo Music.",
+          "Every beat, replay, and late-night obsession that soundtracked your life on Swarr.",
         style =
           MaterialTheme.typography.bodyLarge.copy(
             fontSize = 16.sp,
@@ -2129,7 +2129,7 @@ private fun InsufficientDataView(
     ) {
       Image(
         painter = painterResource(R.drawable.ic_launcher_nobg),
-        contentDescription = "Echo Music",
+        contentDescription = "Swarr",
         colorFilter = ColorFilter.tint(Color(0xFF00F5D4)),
         modifier = Modifier.size(64.dp),
       )

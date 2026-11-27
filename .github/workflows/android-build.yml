@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Signed APK
+    name: Build Signed Swarr APK
     runs-on: ubuntu-latest
 
     steps:
@@ -94,5 +94,5 @@ jobs:
     - name: Upload Universal APK
       uses: actions/upload-artifact@v7
       with:
-        name: Echo-Music-Universal-APK
+        name: Swarr-Universal-APK
         path: app/build/outputs/apk/**/*.apk

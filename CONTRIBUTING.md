@@ -1,6 +1,6 @@
-# Contributing to Echo Music
+# Contributing to Swarr
 
-Thank you for your interest in contributing to Echo Music! This document provides comprehensive guidelines and information for contributors.
+Thank you for your interest in contributing to Swarr! This document provides comprehensive guidelines and information for contributors.
 
 ## Table of Contents
 
@@ -95,8 +95,8 @@ If you want to test Firebase features:
 
 1. Create a Firebase project
 2. Add Android apps with package names:
-   - `echo.music.iad1tya` (release)
-   - `echo.music.iad1tya.debug` (debug)
+   - `com.swarr.com` (release)
+   - `com.swarr.com.debug` (debug)
 3. Copy the template and configure it with your Firebase credentials:
    ```bash
    cp app/google-services.json.template app/google-services.json
@@ -107,7 +107,7 @@ If you want to test Firebase features:
 
 ## Handling Sensitive Information
 
-When contributing to Echo Music, it's crucial to handle sensitive information properly:
+When contributing to Swarr, it's crucial to handle sensitive information properly:
 
 ### Files That Should Never Be Committed
 
@@ -319,7 +319,7 @@ lyrics/         Lyrics orchestration
 models/         Shared data models
 playback/       Media3/ExoPlayer service, download manager, queueing, audio
 quicksettings/  Android quick settings tile
-recognition/    Music recognition (Echo Find) app-side logic
+recognition/    Music recognition (Swarr Find) app-side logic
 spotify/        Spotify API integration
 spotifyimport/  Import playlists/tracks from Spotify
 ui/
@@ -428,7 +428,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 If you have questions about contributing:
 
-1. Check the [GitHub Discussions](https://github.com/iad1tya/Echo-Music/discussions)
+1. Open an [issue in the Swarr repository](https://github.com/prxshxnt-dev/Swarr/issues)
 2. Create a new discussion
 3. Contact maintainers directly through GitHub
 
@@ -444,11 +444,11 @@ Contributors will be recognized in:
 
 If you have questions about contributing:
 
-1. Check the [GitHub Discussions](https://github.com/iad1tya/Echo-Music/discussions)
+1. Open an [issue in the Swarr repository](https://github.com/prxshxnt-dev/Swarr/issues)
 2. Create a new discussion
 3. Contact maintainers directly
 
-Thank you for contributing to Echo Music!
+Thank you for contributing to Swarr!
 
 ---
 <div align="center">

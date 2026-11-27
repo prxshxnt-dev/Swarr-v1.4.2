@@ -117,8 +117,8 @@ data class LanPeerState(
 
 /**
  * Zero-server-cost LAN sync manager using Android NsdManager (_echomusic._tcp.) and an embedded
- * lightweight HTTP/1.1 JSON server for playback handoff, Echo Connect remote control, and podcast
- * progress synchronization with Echo Music Desktop.
+ * lightweight HTTP/1.1 JSON server for playback handoff, Swarr Connect remote control, and podcast
+ * progress synchronization with Swarr Desktop.
  */
 class LanSyncManager private constructor(private val appContext: Context) {
 
@@ -1057,7 +1057,7 @@ class LanSyncManager private constructor(private val appContext: Context) {
       val safeIndex = index.coerceIn(0, mediaItems.lastIndex)
       conn.playQueue(
         ListQueue(
-          title = source?.takeIf { it.isNotBlank() } ?: "Echo Connect",
+          title = source?.takeIf { it.isNotBlank() } ?: "Swarr Connect",
           items = mediaItems,
           startIndex = safeIndex,
           position = positionMs.coerceAtLeast(0L),

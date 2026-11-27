@@ -100,7 +100,7 @@ fun playerButtonsStyleLabel(style: PlayerButtonsStyle): String {
   }
 }
 
-/** Reusable mock component accurately representing Echo Music's expanded Now Playing screen. */
+/** Reusable mock component accurately representing Swarr's expanded Now Playing screen. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FullPlayerPreview(

@@ -464,7 +464,7 @@
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
     <string name="discord_integration">Intégration Discord</string>
-    <string name="discord_information">echomusic utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique d\'utiliser la connexion à la passerelle de Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Toutefois, aucun cas de suspension de compte utilisateur n\'est connu pour cette raison. À utiliser à vos propres risques.\n\echomusic extraira uniquement votre jeton, et tout le reste est enregistré localement.</string>
+    <string name="discord_information">Swarr utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique d\'utiliser la connexion à la passerelle de Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Toutefois, aucun cas de suspension de compte utilisateur n\'est connu pour cette raison. À utiliser à vos propres risques.\n\Swarr extraira uniquement votre jeton, et tout le reste est enregistré localement.</string>
     <string name="dismiss">Ignorer</string>
     <string name="options">Options</string>
     <string name="preview">Aperçu</string>
@@ -492,7 +492,7 @@
     <string name="listen_together_smart_resync">Resynchronisation réseau intelligente</string>
     <string name="listen_together_smart_resync_desc">Rattraper automatiquement l\'hôte après une coupure de connexion</string>
     <string name="spotify_import_title">Importer depuis Spotify</string>
-    <string name="spotify_import_desc">Connectez Spotify, choisissez des playlists et reproduisez-les dans des playlists locales d\'Echo Music.</string>
+    <string name="spotify_import_desc">Connectez Spotify, choisissez des playlists et reproduisez-les dans des playlists locales d\'Swarr.</string>
     <string name="spotify_connect">Connecter Spotify</string>
     <string name="spotify_refresh">Actualiser la bibliothèque Spotify</string>
     <string name="spotify_select_sources">Sélectionner des playlists Spotify</string>
@@ -551,7 +551,7 @@
     <string name="recognition_notification_processing">Identification en cours…</string>
     <string name="recognition_notification_no_match">Aucune correspondance trouvée</string>
     <string name="recognition_notification_failed">Échec de la reconnaissance</string>
-    <string name="listen_on_echo_music">Écouter sur Echo Music</string>
+    <string name="listen_on_echo_music">Écouter sur Swarr</string>
     <string name="qs_tile_music_recognizer">Reconnaître la musique</string>
     <string name="listenbrainz_scrobbling">Scrobbling ListenBrainz</string>
     <string name="listenbrainz_scrobbling_description">Envoyer automatiquement vos titres écoutés vers ListenBrainz</string>
@@ -908,20 +908,20 @@
     <string name="listen_together_logs_desc">Gérer les paramètres Journaux de connexion</string>
     <string name="listen_together_choose_server_desc">Gérer les paramètres Choisir un serveur</string>
 
-    <!-- Echo Brain -->
+    <!-- Swarr Brain -->
     <string name="echo_brain_analyzed_artists">Artistes analysés</string>
     <plurals name="echo_brain_artists_mapped">
         <item quantity="one">%1$d artiste cartographié</item>
         <item quantity="other">%1$d artistes cartographiés</item>
     </plurals>
-    <string name="echo_brain_beta">Echo Brain (Bêta)</string>
+    <string name="echo_brain_beta">Swarr Brain (Bêta)</string>
     <string name="echo_brain_data_management">Gestion des données</string>
     <string name="echo_brain_discovered_genres">Genres découverts</string>
     <plurals name="echo_brain_distinct_genres_identified">
         <item quantity="one">%1$d genre distinct identifié</item>
         <item quantity="other">%1$d genres distincts identifiés</item>
     </plurals>
-    <string name="echo_brain_enable">Activer Echo Brain</string>
+    <string name="echo_brain_enable">Activer Swarr Brain</string>
     <string name="echo_brain_enable_desc">Ajouter automatiquement des recommandations IA selon vos habitudes d\'écoute</string>
     <string name="echo_brain_export_failed">Échec de l\'exportation</string>
     <string name="echo_brain_export_profile">Exporter le profil</string>

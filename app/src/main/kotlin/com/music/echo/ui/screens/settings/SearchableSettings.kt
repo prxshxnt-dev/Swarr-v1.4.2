@@ -1947,14 +1947,10 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
       "settings/appearance/app_icon",
     ),
 
-    // About Screen - Social & Support Links
-    SearchableSetting("Website", "Visit the Echo Music website", "About", "settings/about"),
-    SearchableSetting("Instagram", "Follow Echo Music on Instagram", "About", "settings/about"),
-    SearchableSetting("X (Twitter)", "Follow Echo Music on X", "About", "settings/about"),
-    SearchableSetting("Buy Me a Coffee", "Support the developer", "About", "settings/about"),
-    SearchableSetting("Patreon", "Support the developer on Patreon", "About", "settings/about"),
-    SearchableSetting("UPI", "Support the developer via UPI", "About", "settings/about"),
-    SearchableSetting("Discord", "Join the Echo Music community", "About", "settings/about"),
+    // About Screen - Swarr and developer profiles
+    SearchableSetting("Swarr on GitHub", "View Swarr source code and releases", "About", "settings/about"),
+    SearchableSetting("Prashant", "Open Prashant's GitHub profile", "About", "settings/about"),
+    SearchableSetting("Sachit", "Open Sachit's GitHub profile", "About", "settings/about"),
   ) +
     listOf(
         SearchableSetting(
@@ -2175,7 +2171,7 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
         ),
         SearchableSetting(
           "High Quality (320kbps) Music",
-          "Visit 320kbps.echomusic.fun for setup guide",
+          "Open the 320 kbps audio extension setup guide",
           "Extensions",
           "settings/extensions",
         ),
@@ -2432,12 +2428,6 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
         SearchableSetting(
           "Crazy Blue Icon",
           "Vibrant crazy blue launcher icon",
-          "Appearance",
-          "settings/appearance/app_icon",
-        ),
-        SearchableSetting(
-          "Echo Cat Icon",
-          "Playful cat launcher icon by Alarp_Svc",
           "Appearance",
           "settings/appearance/app_icon",
         ),

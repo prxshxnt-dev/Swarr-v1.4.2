@@ -195,7 +195,7 @@ object WrappedShareHelper {
           color = 0x24FFFFFF.toInt()
         }
 
-      // 2. Header: Echo Music Logo + Wordmark + 2026 WRAPPED
+      // 2. Header: Swarr logo + Wordmark + 2026 WRAPPED
       try {
         val logoDrawable =
           androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_launcher_nobg)
@@ -218,7 +218,7 @@ object WrappedShareHelper {
           letterSpacing = -0.04f
           typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-      canvas.drawText("Echo Music", marginX + 70f, 156f, wordmarkPaint)
+      canvas.drawText("Swarr", marginX + 70f, 156f, wordmarkPaint)
 
       val yearPaint =
         Paint().apply {
@@ -529,7 +529,7 @@ object WrappedShareHelper {
         trioY,
         statTrioPaint,
       )
-      canvas.drawText("ECHO MUSIC", marginX + 710f, trioY, statTrioAccentPaint)
+      canvas.drawText("SWARR", marginX + 710f, trioY, statTrioAccentPaint)
 
       // 8. Watermark Footer
       val footerPaint =
@@ -542,7 +542,7 @@ object WrappedShareHelper {
           typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
       canvas.drawText(
-        "CRAFTED WITH ECHO MUSIC • ${data.yearLabel} REPLAY • echomusic.app/wrapped",
+        "CRAFTED WITH SWARR • ${data.yearLabel} REPLAY",
         width / 2f,
         1750f,
         footerPaint,
@@ -577,7 +577,7 @@ object WrappedShareHelper {
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(
               Intent.EXTRA_TEXT,
-              "Here is my ${data.yearLabel} Wrapped on Echo Music! 🎵\nTop Song: ${data.topSong?.title ?: "Various"}\nTop Artist: ${data.topArtist?.title ?: "Various"}\nPersona: ${data.dominantVibe}",
+              "Here is my ${data.yearLabel} Wrapped on Swarr! 🎵\nTop Song: ${data.topSong?.title ?: "Various"}\nTop Artist: ${data.topArtist?.title ?: "Various"}\nPersona: ${data.dominantVibe}",
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
           }
