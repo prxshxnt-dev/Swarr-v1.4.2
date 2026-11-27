@@ -62,7 +62,11 @@ This is the full Android source repository, not only a binary patch or an APK ov
 | `audio-dsp/`, `dsp-core/`, `usbaudio/` | Audio processing and device audio support |
 | `docs/` | Feature and integration documentation |
 | `fastlane/` | Android store metadata |
-| `scripts/` | Development and maintenance scripts |
+| `scripts/` | Development and maintenance scripts; `build.sh` is a legacy APK-overlay builder, not the canonical source build |
+| `backend/` | Earlier Supabase admin backend prototype; not deployed or wired into the Android app |
+| `overlay/` | Historical apktool patch files for the older `swarr.prashant` package; retained for reference only |
+| `tools/` | Utilities retained from the earlier overlay workflow |
+| `NOTICE.md` | Upstream attribution and license notice |
 | `gradle/` | Gradle wrapper and version catalog |
 
 ## Build from source
@@ -146,6 +150,10 @@ Firebase configuration is optional for the FOSS build. If you need Firebase anal
 A configuration generated for the old package ID will not match the new application ID. Do not commit private service credentials, signing files, API secrets, or your local `local.properties`.
 
 Some optional integrations require their own provider credentials or endpoints. Configure those locally as documented in [SETUP.md](SETUP.md).
+
+## Historical backend and APK overlay
+
+The repository also retains the earlier Supabase backend prototype and apktool overlay workflow so their source and history are not discarded. They are **not** the canonical Android application source or build path. The overlay and `scripts/build.sh` target an older `swarr.prashant` APK based on Echo Music v1.4.8; do not use that script to build current Swarr releases. The backend is not deployed and is not connected to the current app.
 
 ## In-app updates
 

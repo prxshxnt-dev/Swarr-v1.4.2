@@ -1,4 +1,4 @@
-*.iml
+﻿*.iml
 .gradle
 /local.properties
 /.idea/
@@ -39,3 +39,12 @@ lastfm-empty/build/
 BitChord-main/
 ArchiveTune-main/
 PixelMusic-main/
+
+# Signing material, local secrets, and generated release artifacts
+*.jks
+*.keystore
+*.pw
+.env
+SWARR-SETUP.txt
+work/
+*.apk
