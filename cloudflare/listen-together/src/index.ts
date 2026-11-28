@@ -92,7 +92,16 @@ const safeTrack = (value: unknown): Track | null => {
   return {
     id: t.id, title: t.title, artist: t.artist, duration: t.duration,
     album: cleanText(t.album, 300) || null,
-    thumbnail: cleanText(t.thumbnail, 2048) || null,
+    thumbnail: (() => {
+      const thumbnail = cleanText(t.thumbnail, 2048);
+      if (!thumbnail) return null;
+      try {
+        const url = new URL(thumbnail);
+        return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+      } catch {
+        return null;
+      }
+    })(),
     suggested_by: cleanText(t.suggested_by, MAX_USERNAME) || null,
   };
 };
@@ -169,6 +178,16 @@ export class ClientSession extends DurableObject<Env> {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.userId === userId) {
         ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+      }
+    }
+  }
+
+  async closeSession(userId: string): Promise<void> {
+    for (const ws of this.ctx.getWebSockets()) {
+      const current = ws.deserializeAttachment() as SocketAttachment | null;
+      if (current?.userId === userId) {
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+        try { ws.close(4001, "Session replaced"); } catch {}
       }
     }
   }
@@ -406,10 +425,10 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       user.client_session_id = clientSessionId;
       user.is_connected = true;
       await this.save(room);
-      await this.broadcast(room, "user_reconnected", { user_id: userId, username: user.username }, userId);
       if (oldSession !== clientSessionId) {
-        // The previous socket is no longer authoritative; its next message will be rejected by its session mapping.
+        await this.session(oldSession).closeSession(userId).catch(() => undefined);
       }
+      await this.broadcast(room, "user_reconnected", { user_id: userId, username: user.username }, userId);
       return { ok: true, state: roomSnapshot(room), isHost: user.is_host };
     });
   }
@@ -467,6 +486,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       room.rate_limits ??= {};
       const ratePolicy: Record<string, { max: number; windowMs: number }> = {
         chat: { max: 8, windowMs: 10_000 },
+        request_sync: { max: 10, windowMs: 10_000 },
         suggest_track: { max: 3, windowMs: 60_000 },
         playback_action: { max: 30, windowMs: 10_000 },
         approve_join: { max: 10, windowMs: 10_000 },
