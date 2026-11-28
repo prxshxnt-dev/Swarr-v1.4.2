@@ -176,7 +176,7 @@ export class ClientSession extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.userId === userId) {
-        try { ws.send(envelope("kicked", { reason: "Removed by host" })); } catch {}
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
         try { ws.close(4003, "Session revoked"); } catch {}
       }
     }
@@ -521,7 +521,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           room.users = room.users.filter((u) => u.user_id !== target.user_id);
           await this.save(room);
           await this.send(target.client_session_id, "kicked", { reason: cleanText(p.reason, 200) || "Removed by host" });
-          await this.session(target.client_session_id).clearRoom(target.user_id);
+          await this.session(target.client_session_id).revoke(target.user_id);
           await this.broadcast(room, "user_left", { user_id: target.user_id, username: target.username });
           break;
         }
