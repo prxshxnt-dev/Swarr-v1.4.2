@@ -51,20 +51,29 @@ jobs:
           fi
         done
 
+    # The FOSS test/debug variants do not use Firebase. Removing this file
+    # prevents the Google Services plugin from requiring a debug package entry.
+    - name: Disable Google Services for FOSS tests
+      run: rm -f app/google-services.json
+
     - name: Run Unit Tests
       run: |
         chmod +x gradlew
         ./gradlew :core:testDebugUnitTest :lyrics:testDebugUnitTest :app:testUniversalFossDebugUnitTest
 
+    - name: Restore Google Services config for signed GMS release
+      if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+      run: git checkout -- app/google-services.json
+
     - name: Decode Keystore
-      if: ${{ env.KEYSTORE_BASE64 != '' }}
+      if: ${{ secrets.KEYSTORE_BASE64 != '' }}
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       run: |
         echo "$KEYSTORE_BASE64" | base64 -d > keystore.jks
 
     - name: Build Release APK
-      if: ${{ env.KEYSTORE_BASE64 != '' }}
+      if: ${{ secrets.KEYSTORE_BASE64 != '' }}
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -75,7 +84,7 @@ jobs:
         ./gradlew assembleUniversalGmsRelease
 
     - name: Build Debug APK (fork PR fallback without signing)
-      if: ${{ env.KEYSTORE_BASE64 == '' }}
+      if: ${{ secrets.KEYSTORE_BASE64 == '' }}
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       run: |
