@@ -56,7 +56,6 @@ const MAX_CHAT = 1000;
 const MAX_QUEUE = 200;
 const SESSION_GRACE_MS = 10 * 60 * 1000;
 const JOIN_REQUEST_TTL_MS = 60 * 1000;
-const ROOM_IDLE_MS = 30 * 60 * 1000;
 
 const response = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -368,11 +367,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           json TEXT NOT NULL
         )
       `);
-      const room = await this.load();
-      if (room && Date.now() - room.created_at > ROOM_IDLE_MS && room.users.every((u) => !u.is_connected)) {
-        await this.rejectPending(room, "Room closed");
-        this.deleteRoom();
-      }
+      // Room state is recovered from SQLite after eviction; lifecycle cleanup is handled by alarms.
     });
   }
 
