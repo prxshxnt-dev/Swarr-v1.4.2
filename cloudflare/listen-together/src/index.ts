@@ -212,7 +212,7 @@ export class ClientSession extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.userId === userId) {
-        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId, clientIp: current.clientIp });
       }
     }
   }
@@ -221,7 +221,7 @@ export class ClientSession extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.userId === userId) {
-        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId, clientIp: current.clientIp });
         try { ws.close(4001, "Session replaced"); } catch {}
       }
     }
@@ -231,7 +231,7 @@ export class ClientSession extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.userId === userId) {
-        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId, clientIp: current.clientIp });
         try { ws.send(envelope("kicked", { reason })); } catch {}
         try { ws.close(4003, "Session revoked"); } catch {}
       }
