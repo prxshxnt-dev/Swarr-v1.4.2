@@ -40,6 +40,7 @@ type Room = {
   buffer_track_id: string | null;
   buffer_ready: string[];
   suggestions: Suggestion[];
+  rate_limits: Record<string, number[]>;
   created_at: number;
 };
 type SocketAttachment = { clientSessionId: string; roomCode?: string; userId?: string };
@@ -371,7 +372,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           client_session_id: clientSessionId, token_hash: await sha256(hash) }],
         pending: [], current_track: null, is_playing: false, position: 0, last_update: now,
         volume: 1, queue: [], allow_participant_control: false, buffer_track_id: null,
-        buffer_ready: [], suggestions: [], created_at: now,
+        buffer_ready: [], suggestions: [], rate_limits: {}, created_at: now,
       };
       await this.save(room);
       return { ok: true, userId, token };
@@ -462,6 +463,30 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const isHost = userId === room.host_id;
       const fail = (code: string, message: string) =>
         this.send(clientSessionId, "error", { code, message });
+
+      room.rate_limits ??= {};
+      const ratePolicy: Record<string, { max: number; windowMs: number }> = {
+        chat: { max: 8, windowMs: 10_000 },
+        suggest_track: { max: 3, windowMs: 60_000 },
+        playback_action: { max: 30, windowMs: 10_000 },
+        approve_join: { max: 10, windowMs: 10_000 },
+        reject_join: { max: 10, windowMs: 10_000 },
+        kick_user: { max: 10, windowMs: 10_000 },
+      };
+      const policy = ratePolicy[msg.type];
+      if (policy) {
+        const now = Date.now();
+        const key = `${userId}:${msg.type}`;
+        const recent = (room.rate_limits[key] ?? []).filter((time) => now - time < policy.windowMs);
+        if (recent.length >= policy.max) {
+          room.rate_limits[key] = recent;
+          await this.save(room);
+          return fail("rate_limited", "Please wait before sending more requests");
+        }
+        recent.push(now);
+        room.rate_limits[key] = recent;
+        await this.save(room);
+      }
 
       switch (msg.type) {
         case "ping":
@@ -586,6 +611,9 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             case "set_volume": if (typeof payload.volume === "number") room.volume = payload.volume; break;
             case "skip_next": case "skip_prev": break;
             default: return fail("unknown_playback_action", "Unsupported playback action");
+          }
+          if (!["play", "pause", "seek", "change_track"].includes(action)) {
+            room.position = livePosition;
           }
           if (Array.isArray(payload.queue)) room.queue = payload.queue as Track[];
           room.last_update = now;
