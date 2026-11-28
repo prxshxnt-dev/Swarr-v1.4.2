@@ -342,6 +342,12 @@ fun ListenTogetherSettings(
         items =
           listOf(
             Material3SettingsItem(
+              icon = painterResource(R.drawable.cloud),
+              title = { Text(stringResource(R.string.listen_together_choose_server)) },
+              description = { Text(selectedServer?.name ?: serverUrl) },
+              onClick = { showServerUrlDialog = true },
+            ),
+            Material3SettingsItem(
               icon = painterResource(R.drawable.person),
               title = { Text(stringResource(R.string.listen_together_blocked_users)) },
               description = {
