@@ -171,7 +171,7 @@ export class ClientSession extends DurableObject<Env> {
       const current = (ws.deserializeAttachment() as SocketAttachment | null) ?? {
         clientSessionId: this.ctx.id.toString(),
       };
-      ws.serializeAttachment({ ...current, roomCode, userId });
+      ws.serializeAttachment({ clientSessionId: current.clientSessionId, roomCode, userId });
     }
   }
 
@@ -322,6 +322,9 @@ export class ClientSession extends DurableObject<Env> {
     if (attachment?.roomCode && attachment.userId) {
       await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.roomCode))
         .disconnectUser(attachment.userId, attachment.clientSessionId);
+    } else if (attachment?.pendingRoomCode) {
+      await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.pendingRoomCode))
+        .cancelPending(attachment.clientSessionId);
     }
   }
 
@@ -383,6 +386,20 @@ export class ListenTogetherRoom extends DurableObject<Env> {
 
   private deleteRoom(): void {
     this.ctx.storage.sql.exec("DELETE FROM room_state WHERE id = 1");
+  }
+
+  private async scheduleAlarm(room: Room): Promise<void> {
+    const deadlines = [
+      ...room.pending.map((pending) => (pending.created_at ?? 0) + JOIN_REQUEST_TTL_MS),
+      ...room.users
+        .filter((user) => !user.is_connected)
+        .map((user) => (user.disconnected_at ?? 0) + SESSION_GRACE_MS),
+    ];
+    if (deadlines.length) {
+      await this.ctx.storage.setAlarm(Math.max(Date.now() + 1000, Math.min(...deadlines)));
+    } else {
+      await this.ctx.storage.deleteAlarm();
+    }
   }
 
   private session(clientSessionId: string) {
