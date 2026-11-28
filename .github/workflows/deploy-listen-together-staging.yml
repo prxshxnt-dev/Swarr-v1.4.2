@@ -2,6 +2,12 @@ name: Deploy Listen Together staging
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/listen-together-cloudflare
+    paths:
+      - ".github/workflows/deploy-listen-together-staging.yml"
+      - "cloudflare/listen-together/**"
 
 permissions:
   contents: read
