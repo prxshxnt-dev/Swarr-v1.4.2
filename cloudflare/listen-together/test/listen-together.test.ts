@@ -1,4 +1,5 @@
-import { exports } from "cloudflare:workers";
+import { env, exports } from "cloudflare:workers";
+import { evictDurableObject } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 type Envelope = { type: string; payload?: Record<string, any> };
@@ -112,6 +113,22 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     host.socket.close();
     reconnectedGuest.socket.close();
     replay.socket.close();
+  });
+
+  it("persists room state after its Durable Object is evicted", async () => {
+    const host = await connectClient();
+    host.send("create_room", { username: "Persistence Host" });
+    const created = await host.next("room_created");
+    const roomCode = String(created.payload?.room_code);
+
+    const roomStub = env.ROOMS.get(env.ROOMS.idFromName(roomCode));
+    await evictDurableObject(roomStub);
+
+    host.send("request_sync");
+    const snapshot = await host.next("sync_state");
+    expect(snapshot.payload?.room_code).toBe(roomCode);
+    expect(snapshot.payload?.users).toHaveLength(1);
+    host.socket.close();
   });
 
   it("rejects malformed input and oversized frames", async () => {
