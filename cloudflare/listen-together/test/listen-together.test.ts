@@ -159,6 +159,43 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     replay.socket.close();
   });
 
+  it("promotes a connected guest when the host disconnects and preserves the new host", async () => {
+    const host = await connectClient();
+    const guest = await connectClient();
+
+    host.send("create_room", { username: "Original Host" });
+    const created = await host.next("room_created");
+    const roomCode = String(created.payload?.room_code);
+    const hostToken = String(created.payload?.session_token);
+
+    guest.send("join_room", { room_code: roomCode, username: "Guest Host" });
+    const request = await host.next("join_request");
+    const guestId = String(request.payload?.user_id);
+    host.send("approve_join", { user_id: guestId });
+    const approved = await guest.next("join_approved");
+    const guestToken = String(approved.payload?.session_token);
+    await host.next("user_joined");
+
+    host.socket.close();
+    await guest.next("user_disconnected");
+
+    const promotedGuest = await connectClient();
+    promotedGuest.send("reconnect", { session_token: guestToken });
+    const promoted = await promotedGuest.next("reconnected");
+    expect(promoted.payload?.is_host).toBe(true);
+    expect(promoted.payload?.state?.host_id).toBe(guestId);
+
+    const formerHost = await connectClient();
+    formerHost.send("reconnect", { session_token: hostToken });
+    const formerHostState = await formerHost.next("reconnected");
+    expect(formerHostState.payload?.is_host).toBe(false);
+    expect(formerHostState.payload?.state?.host_id).toBe(guestId);
+
+    promotedGuest.socket.close();
+    formerHost.socket.close();
+    guest.socket.close();
+  });
+
   it("cleans up disconnected pending joiners and rejects waiting guests when a room closes", async () => {
     const host = await connectClient();
     const firstGuest = await connectClient();
