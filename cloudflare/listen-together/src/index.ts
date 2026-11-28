@@ -474,13 +474,14 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       if (!room || room.room_code !== roomCode) return { error: "room_not_found" };
       if (room.users.some((u) => u.client_session_id === clientSessionId) ||
           room.pending.some((u) => u.client_session_id === clientSessionId)) return { error: "already_joined" };
+      const host = room.users.find((u) => u.user_id === room.host_id && u.is_connected);
+      if (!host) return { error: "host_unavailable", message: "The room host is currently offline" };
       if (room.users.length + room.pending.length >= 20) return { error: "room_full" };
       const pending = { user_id: randomId(), username, client_session_id: clientSessionId, created_at: Date.now() };
       room.pending.push(pending);
       await this.save(room);
       await this.scheduleAlarm(room);
-      const host = room.users.find((u) => u.user_id === room.host_id);
-      if (host) await this.send(host.client_session_id, "join_request", {
+      await this.send(host.client_session_id, "join_request", {
         user_id: pending.user_id, username: pending.username,
       });
       return { ok: true };
@@ -704,8 +705,8 @@ export class ListenTogetherRoom extends DurableObject<Env> {
         }
         case "transfer_host": {
           if (!isHost) return fail("forbidden", "Only the host can transfer host");
-          const next = room.users.find((u) => u.user_id === cleanText(p.new_host_id, 80));
-          if (!next) return fail("user_not_found", "Participant not found");
+          const next = room.users.find((u) => u.user_id === cleanText(p.new_host_id, 80) && u.is_connected);
+          if (!next) return fail("user_not_found", "A connected participant is required");
           room.host_id = next.user_id;
           room.users.forEach((u) => { u.is_host = u.user_id === next.user_id; });
           await this.save(room);
