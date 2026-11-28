@@ -151,7 +151,7 @@ private fun AboutAppCard() {
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Image(
-        painter = painterResource(R.drawable.ic_launcher_nobg),
+        painter = painterResource(R.drawable.swarr_logo),
         contentDescription = "Swarr logo",
         modifier = Modifier.size(76.dp),
         contentScale = ContentScale.Fit,

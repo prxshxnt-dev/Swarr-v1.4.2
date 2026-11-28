@@ -583,7 +583,6 @@ val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 val LastOpenedVersionCodeKey = intPreferencesKey("lastOpenedVersionCode")
-val HasSeenSwarrDeveloperIntroKey = booleanPreferencesKey("has_seen_swarr_developer_intro")
 
 val LanguageCodeToName =
   mapOf(

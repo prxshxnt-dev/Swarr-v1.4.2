@@ -33,8 +33,8 @@ android {
     applicationId = "com.swarr.com"
     minSdk = 26
     targetSdk = 36
-    versionCode = 170
-    versionName = "1.4.9"
+    versionCode = 172
+    versionName = "1.5"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables.useSupportLibrary = true

@@ -240,13 +240,13 @@ fun CommunityPlaylistCard(
           Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.weight(1f)) {
               AsyncImage(
-                model = item.songs.getOrNull(0)?.thumbnail?.resize(544, 544),
+                model = item.songs.getOrNull(0)?.thumbnail?.resize(256, 256),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.weight(1f).fillMaxSize(),
               )
               AsyncImage(
-                model = item.songs.getOrNull(1)?.thumbnail?.resize(544, 544),
+                model = item.songs.getOrNull(1)?.thumbnail?.resize(256, 256),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.weight(1f).fillMaxSize(),
@@ -254,13 +254,13 @@ fun CommunityPlaylistCard(
             }
             Row(modifier = Modifier.weight(1f)) {
               AsyncImage(
-                model = item.songs.getOrNull(2)?.thumbnail?.resize(544, 544),
+                model = item.songs.getOrNull(2)?.thumbnail?.resize(256, 256),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.weight(1f).fillMaxSize(),
               )
               AsyncImage(
-                model = item.songs.getOrNull(3)?.thumbnail?.resize(544, 544),
+                model = item.songs.getOrNull(3)?.thumbnail?.resize(256, 256),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.weight(1f).fillMaxSize(),
@@ -298,7 +298,7 @@ fun CommunityPlaylistCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
           ) {
             AsyncImage(
-              model = song.thumbnail.resize(544, 544),
+              model = song.thumbnail.resize(160, 160),
               contentDescription = null,
               modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)),
               contentScale = ContentScale.Crop,

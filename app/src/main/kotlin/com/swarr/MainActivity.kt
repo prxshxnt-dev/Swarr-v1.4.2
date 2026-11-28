@@ -210,7 +210,6 @@ import echo.music.iad1tya.ui.menu.YouTubeSongMenu
 import echo.music.iad1tya.ui.player.BottomSheetPlayer
 import echo.music.iad1tya.ui.screens.Screens
 import echo.music.iad1tya.ui.screens.SettingDialoge
-import echo.music.iad1tya.ui.screens.DeveloperIntroDialog
 import echo.music.iad1tya.ui.screens.WelcomeDialog
 import echo.music.iad1tya.ui.screens.navigationBuilder
 import echo.music.iad1tya.ui.screens.settings.DarkMode
@@ -549,43 +548,24 @@ class MainActivity : ComponentActivity() {
     var availableUpdateDescription by remember {
       androidx.compose.runtime.mutableStateOf<String?>(null)
     }
-    var whatsNewInfo by remember {
-      androidx.compose.runtime.mutableStateOf<echo.music.iad1tya.swarr.updater.WhatsNewInfo?>(
-        null,
-      )
-    }
-
     LaunchedEffect(Unit) {
       val currentVersion = BuildConfig.VERSION_NAME
       val lastSeenVersion =
         echo.music.iad1tya.swarr.updater.getLastSeenChangelogVersion(context)
-
       if (lastSeenVersion.isEmpty() || lastSeenVersion != currentVersion) {
-        // Run migrations for fresh installs and updates
         context.dataStore.edit { preferences ->
           preferences[echo.music.iad1tya.constants.ForceOpusKey] = true
           preferences[echo.music.iad1tya.constants.EnableCronetKey] = true
         }
-      }
-
-      if (lastSeenVersion.isEmpty()) {
-        // Fresh install, not an update — nothing "new" to show, so mark this
-        // version seen right away rather than waiting on a dialog dismissal.
+        // Swarr uses its own updater dialog; do not surface historical Echo/desktop changelogs.
         echo.music.iad1tya.swarr.updater.saveLastSeenChangelogVersion(context, currentVersion)
-      } else if (lastSeenVersion != currentVersion) {
-        // Only mark the version seen once its changelog is actually shown (see
-        // onDismiss below) — if the fetch fails here, retry on the next launch
-        // instead of losing that version's release notes forever.
-        whatsNewInfo = echo.music.iad1tya.swarr.updater.fetchChangelogForVersion(currentVersion)
       }
     }
 
     LaunchedEffect(Unit) {
-      val prefs = context.dataStore.data.first()
-
       if (getAutoUpdateCheckSetting(context)) {
-
-        delay(2000L)
+        // Keep release metadata/network work away from the first seconds of UI rendering.
+        delay(10_000L)
         checkForUpdate(
           context = context,
           onSuccess = { latestVersion, isAvailable, changelog, _, _, description, _, _, _ ->
@@ -652,7 +632,7 @@ class MainActivity : ComponentActivity() {
 
             val notification =
               androidx.core.app.NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(R.drawable.swarr_notification_mark)
+                .setSmallIcon(R.drawable.swarr_logo_monochrome)
                 .setContentTitle("Happy Birthday Aditya!")
                 .setContentText("Today is the developer's birthday!")
                 .setLargeIcon(bitmap)
@@ -781,20 +761,6 @@ class MainActivity : ComponentActivity() {
           description = availableUpdateDescription,
           onDismiss = { showUpdateDialog = false },
         )
-      } else {
-        whatsNewInfo?.let { info ->
-          echo.music.iad1tya.swarr.updater.WhatsNewDialog(
-            version = BuildConfig.VERSION_NAME,
-            info = info,
-            onDismiss = {
-              echo.music.iad1tya.swarr.updater.saveLastSeenChangelogVersion(
-                context,
-                BuildConfig.VERSION_NAME,
-              )
-              whatsNewInfo = null
-            },
-          )
-        }
       }
       BoxWithConstraints(
         modifier =
@@ -1143,17 +1109,12 @@ class MainActivity : ComponentActivity() {
         val snackbarHostState = remember { SnackbarHostState() }
         var showSettingDialoge by remember { mutableStateOf(false) }
 
-        var showDeveloperIntroDialog by remember { mutableStateOf(false) }
         var showWelcomeDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
           val prefs = context.dataStore.data.first()
-          val hasSeenDeveloperIntro =
-            prefs[echo.music.iad1tya.constants.HasSeenSwarrDeveloperIntroKey] ?: false
           val lastOpened = prefs[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] ?: -1
-          if (!hasSeenDeveloperIntro) {
-            showDeveloperIntroDialog = true
-          } else if (lastOpened < BuildConfig.VERSION_CODE) {
+          if (lastOpened < BuildConfig.VERSION_CODE) {
             showWelcomeDialog = true
           }
         }
@@ -1994,25 +1955,6 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(route)
               },
               homeViewModel = homeViewModel,
-            )
-          }
-
-          if (showDeveloperIntroDialog) {
-            DeveloperIntroDialog(
-              onDismissRequest = {
-                showDeveloperIntroDialog = false
-                coroutineScope.launch {
-                  context.dataStore.edit {
-                    it[echo.music.iad1tya.constants.HasSeenSwarrDeveloperIntroKey] = true
-                  }
-                  val latestPrefs = context.dataStore.data.first()
-                  val lastOpened =
-                    latestPrefs[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] ?: -1
-                  if (lastOpened < BuildConfig.VERSION_CODE) {
-                    showWelcomeDialog = true
-                  }
-                }
-              },
             )
           }
 

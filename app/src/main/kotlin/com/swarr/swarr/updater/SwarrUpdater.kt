@@ -678,15 +678,17 @@ suspend fun checkForUpdate(
 ) {
   withContext(Dispatchers.IO) {
     try {
-      val url = URL("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
-      val json = url.openStream().bufferedReader().use { it.readText() }
+      val json =
+        openTimedStream("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
+          .bufferedReader()
+          .use { it.readText() }
       val targetRelease = JSONObject(json)
 
       val currentVersion = BuildConfig.VERSION_NAME
       val targetTagName = targetRelease.getString("tag_name")
-      val currentClean = currentVersion.removePrefix("b").removePrefix("v").trim()
-      val targetClean = targetTagName.removePrefix("b").removePrefix("v").trim()
-      val shouldShow = currentClean != targetClean
+      // Do not offer an older release just because its tag differs from the installed version.
+      // This also prevents legacy Echo-era tags from appearing as updates to newer Swarr builds.
+      val shouldShow = isNewerVersion(targetTagName, currentVersion)
 
       if (shouldShow) {
         val tagWithPrefix = targetRelease.getString("tag_name")
@@ -700,7 +702,8 @@ suspend fun checkForUpdate(
             URL(
               "https://github.com/prxshxnt-dev/Swarr/releases/download/$tagWithPrefix/changelog.json",
             )
-          val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
+          val changelogJson =
+            openTimedStream(changelogUrl.toString()).bufferedReader().use { it.readText() }
           val changelogData = JSONObject(changelogJson)
 
           description = changelogData.optString("description").takeIf { it.isNotEmpty() }
@@ -744,7 +747,10 @@ suspend fun checkForUpdate(
           val assetName = asset.getString("name")
           if (
             assetName.endsWith(".apk", ignoreCase = true) &&
-              !assetName.lowercase().contains("debug")
+              !assetName.lowercase().contains("debug") &&
+              assetName.contains("swarr", ignoreCase = true) &&
+              !assetName.contains("desktop", ignoreCase = true) &&
+              !assetName.contains("echo", ignoreCase = true)
           ) {
             val apkSizeInBytes = asset.getLong("size")
             apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
