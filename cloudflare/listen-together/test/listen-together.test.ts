@@ -194,6 +194,28 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     host.socket.close();
   });
 
+  it("keeps a ClientSession WebSocket alive across Durable Object eviction", async () => {
+    const id = env.CLIENT_SESSIONS.newUniqueId();
+    const stub = env.CLIENT_SESSIONS.get(id);
+    const response = await stub.fetch(new Request("https://swarr.test/ws", {
+      headers: { Upgrade: "websocket" }
+    }));
+    if (!response.webSocket) throw new Error("Expected a WebSocket response");
+    const socket = response.webSocket;
+    socket.accept();
+
+    await evictDurableObject(stub);
+
+    const received = new Promise<string>((resolve) => {
+      socket.addEventListener("message", (event) => resolve(String(event.data)), { once: true });
+    });
+    socket.send(JSON.stringify({ type: "ping" }));
+    const message = JSON.parse(await received) as Envelope;
+    expect(message.type).toBe("error");
+    expect(message.payload?.code).toBe("not_in_room");
+    socket.close(1000, "test complete");
+  });
+
   it("enforces the per-IP request bucket", async () => {
     const limiter = env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName("listen-together-test-ip"));
     expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(true);
