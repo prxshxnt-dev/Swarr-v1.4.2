@@ -414,6 +414,14 @@ export class ListenTogetherRoom extends DurableObject<Env> {
     }
   }
 
+  private async rejectPending(room: Room, reason: string): Promise<void> {
+    const pending = room.pending.splice(0);
+    for (const request of pending) {
+      await this.session(request.client_session_id).clearPending().catch(() => undefined);
+      await this.send(request.client_session_id, "join_rejected", { reason }).catch(() => undefined);
+    }
+  }
+
   private session(clientSessionId: string) {
     return this.env.CLIENT_SESSIONS.get(this.env.CLIENT_SESSIONS.idFromString(clientSessionId));
   }
@@ -541,6 +549,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       room.users = room.users.filter((user) => !expiredIds.has(user.user_id));
 
       if (!room.users.length) {
+        await this.rejectPending(room, "Room closed");
         this.deleteRoom();
         return;
       }
@@ -614,8 +623,13 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             }
           }
           await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
-          if (!room.users.length) this.deleteRoom(); else await this.save(room);
-          if (room.users.length) await this.scheduleAlarm(room);
+          if (!room.users.length) {
+            await this.rejectPending(room, "Room closed");
+            this.deleteRoom();
+          } else {
+            await this.save(room);
+            await this.scheduleAlarm(room);
+          }
           break;
         case "approve_join": {
           if (!isHost) return fail("forbidden", "Only the host can approve participants");
