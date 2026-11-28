@@ -431,6 +431,19 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       .map((u) => this.send(u.client_session_id, type, payload).catch(() => undefined)));
   }
 
+  private async broadcastBufferStatus(room: Room): Promise<void> {
+    const trackId = room.buffer_track_id;
+    if (!trackId) return;
+    const waitingFor = room.users
+      .filter((user) => user.is_connected && !room.buffer_ready.includes(user.user_id))
+      .map((user) => user.user_id);
+    if (waitingFor.length) {
+      await this.broadcast(room, "buffer_wait", { track_id: trackId, waiting_for: waitingFor });
+    } else {
+      await this.broadcast(room, "buffer_complete", { track_id: trackId });
+    }
+  }
+
   private issueToken(roomCode: string, userId: string) {
     const secret = randomSecret();
     return { token: `v1.${base64Url(roomCode)}.${base64Url(userId)}.${secret}`, hash: secret };
@@ -483,12 +496,14 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       user.client_session_id = clientSessionId;
       user.is_connected = true;
       user.disconnected_at = null;
+      room.buffer_ready = room.buffer_ready.filter((id) => id !== userId);
       await this.save(room);
       await this.scheduleAlarm(room);
       if (oldSession !== clientSessionId) {
         await this.session(oldSession).closeSession(userId).catch(() => undefined);
       }
       await this.broadcast(room, "user_reconnected", { user_id: userId, username: user.username }, userId);
+      await this.broadcastBufferStatus(room);
       return { ok: true, state: roomSnapshot(room), isHost: user.is_host };
     });
   }
@@ -516,6 +531,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       await this.save(room);
       await this.broadcast(room, "user_disconnected", { user_id: userId, username: user.username }, userId);
       await this.scheduleAlarm(room);
+      await this.broadcastBufferStatus(room);
     });
   }
 
@@ -618,6 +634,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
               await this.broadcast(room, "host_changed", { new_host_id: next.user_id, new_host_name: next.username });
             }
           }
+          room.buffer_ready = room.buffer_ready.filter((id) => id !== userId);
           await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
           if (!room.users.length) {
             await this.rejectPending(room, "Room closed");
@@ -625,6 +642,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           } else {
             await this.save(room);
             await this.scheduleAlarm(room);
+            await this.broadcastBufferStatus(room);
           }
           break;
         case "approve_join": {
@@ -649,6 +667,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             state: roomSnapshot(room),
           });
           await this.broadcast(room, "user_joined", { user_id: guest.user_id, username: guest.username }, guest.user_id);
+          await this.broadcastBufferStatus(room);
           break;
         }
         case "reject_join": {
@@ -670,6 +689,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           const target = room.users.find((u) => u.user_id === cleanText(p.user_id, 80));
           if (!target || target.is_host) return;
           room.users = room.users.filter((u) => u.user_id !== target.user_id);
+          room.buffer_ready = room.buffer_ready.filter((id) => id !== target.user_id);
           await this.save(room);
           await this.scheduleAlarm(room);
           await this.session(target.client_session_id).revoke(
@@ -677,6 +697,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             cleanText(p.reason, 200) || "Removed by host",
           );
           await this.broadcast(room, "user_left", { user_id: target.user_id, username: target.username });
+          await this.broadcastBufferStatus(room);
           break;
         }
         case "transfer_host": {
@@ -745,12 +766,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           room.last_update = now;
           await this.save(room);
           if (action === "change_track") {
-            const waitingFor = room.users.filter((u) => u.is_connected && u.user_id !== userId).map((u) => u.user_id);
-            if (waitingFor.length) {
-              await this.broadcast(room, "buffer_wait", { track_id: track!.id, waiting_for: waitingFor });
-            } else {
-              await this.broadcast(room, "buffer_complete", { track_id: track!.id });
-            }
+            await this.broadcastBufferStatus(room);
           }
           await this.broadcast(room, "sync_playback", payload, userId);
           break;
@@ -762,10 +778,8 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           const trackId = cleanText(p.track_id, 160);
           if (!trackId || trackId !== room.buffer_track_id) return;
           if (!room.buffer_ready.includes(userId)) room.buffer_ready.push(userId);
-          const waitingFor = room.users.filter((u) => u.is_connected && !room.buffer_ready.includes(u.user_id)).map((u) => u.user_id);
-          if (waitingFor.length) await this.broadcast(room, "buffer_wait", { track_id: trackId, waiting_for: waitingFor });
-          else await this.broadcast(room, "buffer_complete", { track_id: trackId });
           await this.save(room);
+          await this.broadcastBufferStatus(room);
           break;
         }
         case "chat": {
