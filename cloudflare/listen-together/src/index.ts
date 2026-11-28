@@ -44,7 +44,7 @@ type Room = {
   created_at: number;
 };
 type SocketAttachment = { clientSessionId: string; roomCode?: string; userId?: string };
-type Env = {
+export type Env = {
   CLIENT_SESSIONS: DurableObjectNamespace<ClientSession>;
   ROOMS: DurableObjectNamespace<ListenTogetherRoom>;
 };
@@ -61,7 +61,7 @@ const response = (body: unknown, status = 200) =>
 const envelope = (type: string, payload?: JsonRecord | null) =>
   JSON.stringify({ type, ...(payload == null ? {} : { payload }) });
 const cleanText = (value: unknown, max: number) =>
-  typeof value === "string" ? value.trim().slice(0, max) : "";
+  typeof value === "string" ? value.replace(/[\\u0000-\\u001F\\u007F]/g, "").trim().slice(0, max) : "";
 const randomId = () => crypto.randomUUID();
 const base64Url = (value: string) =>
   btoa(value).replace(/=/g, "").replace(/\\+/g, "-").replace(/\\//g, "_");
@@ -79,9 +79,9 @@ const validTrack = (value: unknown): value is Track => {
   if (!value || typeof value !== "object") return false;
   const t = value as JsonRecord;
   return (
-    typeof t.id === "string" && t.id.length <= 160 &&
-    typeof t.title === "string" && t.title.length <= 300 &&
-    typeof t.artist === "string" && t.artist.length <= 300 &&
+    typeof t.id === "string" && t.id.trim().length > 0 && t.id.length <= 160 &&
+    typeof t.title === "string" && t.title.trim().length > 0 && t.title.length <= 300 &&
+    typeof t.artist === "string" && t.artist.trim().length > 0 && t.artist.length <= 300 &&
     typeof t.duration === "number" && Number.isFinite(t.duration) &&
     t.duration >= 0 && t.duration <= 24 * 60 * 60 * 1000
   );
