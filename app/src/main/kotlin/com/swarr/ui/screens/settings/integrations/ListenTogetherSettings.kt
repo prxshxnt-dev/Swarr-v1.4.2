@@ -345,17 +345,7 @@ fun ListenTogetherSettings(
               icon = painterResource(R.drawable.cloud),
               title = { Text(stringResource(R.string.listen_together_choose_server)) },
               description = { Text(selectedServer?.name ?: serverUrl) },
-              onClick = {
-                if (roomState == null) {
-                  showServerUrlDialog = true
-                } else {
-                  Toast.makeText(
-                    context,
-                    context.getString(R.string.listen_together_cannot_edit_username_in_room),
-                    Toast.LENGTH_SHORT,
-                  ).show()
-                }
-              },
+              onClick = { showServerUrlDialog = true },
             ),
             Material3SettingsItem(
               icon = painterResource(R.drawable.person),
