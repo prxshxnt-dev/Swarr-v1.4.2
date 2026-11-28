@@ -394,7 +394,7 @@ export class ClientSession extends DurableObject<Env> {
 
   private async createRoom(username: string, clientSessionId: string) {
     for (let attempt = 0; attempt < 5; attempt++) {
-      const code = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+      const code = Array.from(crypto.getRandomValues(new Uint8Array(8)))
         .map((b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
       const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(code))
         .create(code, username, clientSessionId);
