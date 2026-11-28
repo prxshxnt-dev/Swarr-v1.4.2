@@ -142,8 +142,7 @@ export default {
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("Expected a WebSocket upgrade", { status: 426 });
     }
-    const clientIp = request.headers.get("X-Swarr-Client-IP") ||
-      request.headers.get("CF-Connecting-IP") || "unknown";
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
     let connectionAllowed = false;
     try {
       connectionAllowed = await env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName(clientIp))
@@ -173,7 +172,8 @@ export class ClientSession extends DurableObject<Env> {
     const client = pair[0];
     const server = pair[1];
     const clientSessionId = this.ctx.id.toString();
-    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+    const clientIp = request.headers.get("X-Swarr-Client-IP") ||
+      request.headers.get("CF-Connecting-IP") || "unknown";
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ clientSessionId, clientIp } satisfies SocketAttachment);
     return new Response(null, { status: 101, webSocket: client });
