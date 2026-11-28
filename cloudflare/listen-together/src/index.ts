@@ -142,12 +142,20 @@ export default {
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("Expected a WebSocket upgrade", { status: 426 });
     }
-    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
-    const connectionAllowed = await env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName(clientIp))
-      .consume("websocket_connect", 60, 60_000);
+    const clientIp = request.headers.get("X-Swarr-Client-IP") ||
+      request.headers.get("CF-Connecting-IP") || "unknown";
+    let connectionAllowed = false;
+    try {
+      connectionAllowed = await env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName(clientIp))
+        .consume("websocket_connect", 60, 60_000);
+    } catch {
+      return response({ error: "rate_limiter_unavailable" }, 503);
+    }
     if (!connectionAllowed) return response({ error: "rate_limited" }, 429);
     const id = env.CLIENT_SESSIONS.newUniqueId();
-    return env.CLIENT_SESSIONS.get(id).fetch(request);
+    const headers = new Headers(request.headers);
+    headers.set("X-Swarr-Client-IP", clientIp);
+    return env.CLIENT_SESSIONS.get(id).fetch(new Request(request, { headers }));
   },
 };
 
