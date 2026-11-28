@@ -1,6 +1,12 @@
 import { env, exports } from "cloudflare:workers";
 import { evictDurableObject } from "cloudflare:test";
+import type { Env as WorkerEnv } from "../src/index";
 import { describe, expect, it } from "vitest";
+
+const workerEnv = env as unknown as WorkerEnv;
+const workerExports = exports as unknown as {
+  default: { fetch(request: Request): Promise<Response> };
+};
 
 type Envelope = { type: string; payload?: Record<string, any> };
 
@@ -46,7 +52,7 @@ function makeClient(socket: WebSocket) {
 }
 
 async function connectClient() {
-  const response = await exports.default.fetch(new Request("http://swarr.test/ws", {
+  const response = await workerExports.default.fetch(new Request("http://swarr.test/ws", {
     headers: { Upgrade: "websocket" }
   }));
   expect(response.status).toBe(101);
@@ -184,7 +190,7 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     const created = await host.next("room_created");
     const roomCode = String(created.payload?.room_code);
 
-    const roomStub = env.ROOMS.get(env.ROOMS.idFromName(roomCode));
+    const roomStub = workerEnv.ROOMS.get(workerEnv.ROOMS.idFromName(roomCode));
     await evictDurableObject(roomStub);
 
     host.send("request_sync");
@@ -195,8 +201,8 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
   });
 
   it("keeps a ClientSession WebSocket alive across Durable Object eviction", async () => {
-    const id = env.CLIENT_SESSIONS.newUniqueId();
-    const stub = env.CLIENT_SESSIONS.get(id);
+    const id = workerEnv.CLIENT_SESSIONS.newUniqueId();
+    const stub = workerEnv.CLIENT_SESSIONS.get(id);
     const response = await stub.fetch(new Request("https://swarr.test/ws", {
       headers: { Upgrade: "websocket" }
     }));
@@ -207,7 +213,7 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     await evictDurableObject(stub);
 
     const received = new Promise<string>((resolve) => {
-      socket.addEventListener("message", (event) => resolve(String(event.data)), { once: true });
+      socket.addEventListener("message", (event: MessageEvent) => resolve(String(event.data)), { once: true });
     });
     socket.send(JSON.stringify({ type: "ping" }));
     const message = JSON.parse(await received) as Envelope;
@@ -217,7 +223,7 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
   });
 
   it("enforces the per-IP request bucket", async () => {
-    const limiter = env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName("listen-together-test-ip"));
+    const limiter = workerEnv.RATE_LIMITERS.get(workerEnv.RATE_LIMITERS.idFromName("listen-together-test-ip"));
     expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(true);
     expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(true);
     expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(false);
