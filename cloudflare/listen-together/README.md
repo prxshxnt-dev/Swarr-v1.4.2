@@ -41,7 +41,7 @@ The Worker is configured by `wrangler.jsonc` for local development and the Cloud
 From this directory, run:
 
 ```sh
-npm install
+npm install --legacy-peer-deps
 npm run typecheck
 npm test
 npm run dev
