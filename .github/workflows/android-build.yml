@@ -1,0 +1,98 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Signed Swarr APK
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v7
+      with:
+        submodules: recursive
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v6
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Setup Android NDK
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358" || true
+
+    - name: Cache Robolectric Android Runtime
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository/org/robolectric
+        key: robolectric-runtime-4.14.1
+
+    - name: Pre-fetch Robolectric Runtime
+      run: |
+        for ver in "13-robolectric-9030017-i7" "15-robolectric-12650502-i7"; do
+          dir="$HOME/.m2/repository/org/robolectric/android-all-instrumented/$ver"
+          jar="$dir/android-all-instrumented-$ver.jar"
+          if [ ! -f "$jar" ]; then
+            mkdir -p "$dir"
+            curl -fsSL --retry 5 --retry-delay 3 \
+              "https://repo1.maven.org/maven2/org/robolectric/android-all-instrumented/$ver/android-all-instrumented-$ver.jar" \
+              -o "$jar" || true
+          fi
+        done
+
+    - name: Run Unit Tests
+      run: |
+        chmod +x gradlew
+        ./gradlew :core:testDebugUnitTest :lyrics:testDebugUnitTest :app:testUniversalGmsDebugUnitTest
+
+    - name: Decode Keystore
+      if: ${{ env.KEYSTORE_BASE64 != '' }}
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 -d > keystore.jks
+
+    - name: Build Release APK
+      if: ${{ env.KEYSTORE_BASE64 != '' }}
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleUniversalGmsRelease
+
+    - name: Build Debug APK (fork PR fallback without signing)
+      if: ${{ env.KEYSTORE_BASE64 == '' }}
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        mkdir -p "$HOME/.android"
+        keytool -genkeypair \
+          -keystore "$HOME/.android/debug.keystore" \
+          -storepass android \
+          -alias androiddebugkey \
+          -keypass android \
+          -dname "CN=Android Debug,O=Android,C=US" \
+          -keyalg RSA \
+          -validity 10000
+        chmod +x gradlew
+        ./gradlew assembleUniversalFossDebug
+
+    - name: Upload Universal APK
+      uses: actions/upload-artifact@v7
+      with:
+        name: Swarr-Universal-APK
+        path: app/build/outputs/apk/**/*.apk
