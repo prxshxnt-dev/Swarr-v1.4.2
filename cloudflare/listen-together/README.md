@@ -1,7 +1,5 @@
 # Swarr Listen Together — Cloudflare backend
 
-<badge>In development · not deployed</badge>
-
 This folder contains the first Cloudflare backend implementation for Swarr Listen Together. It is isolated on the `feature/listen-together-cloudflare` branch. The Android application and its current production endpoint have not been changed.
 
 ## Compatibility
