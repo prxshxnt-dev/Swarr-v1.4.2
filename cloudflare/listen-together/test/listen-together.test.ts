@@ -69,7 +69,7 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     host.send("create_room", { username: "Host" });
     const created = await host.next("room_created");
     const roomCode = String(created.payload?.room_code);
-    expect(roomCode).toMatch(/^[A-Z0-9]{6}$/);
+    expect(roomCode).toMatch(/^[A-Z0-9]{8}$/);
     const hostId = String(created.payload?.user_id);
 
     guest.send("join_room", { room_code: roomCode, username: "Guest" });
