@@ -1,15 +1,19 @@
 # Rebranding compatibility notes
 
-Swarr's product-facing names, labels, updater classes, widget receiver classes, resource names,
-and source-tree directory names use Swarr. The identifiers below are intentionally retained
-because changing them without a coordinated migration or verified replacement would break
-existing installations, companion clients, or external services.
+Swarr's product-facing names, labels, updater classes, widget receiver classes, and
+Swarr-specific resource names use Swarr. Some upstream-derived Kotlin namespaces and package
+declarations remain intentionally compatible. The identifiers below are retained because
+changing them without a coordinated migration or verified replacement could break existing
+installations, companion clients, or external services.
 
 ## Android and persisted data
 
 - **Kotlin namespace `echo.music.iad1tya`:** retained as the Android source namespace and for
   existing component/action names, manifest entries, and internal integrations. The installed
   production application ID is `com.swarr.com`; these are separate Android identifiers.
+- **Room schema history under `core/schemas/`:** historical export folders include older
+  database package names such as `com.music.echo.db` and `echo.music.iad1tya.db`. Keep the
+  complete versioned schema history so Room migration tests and upgrade paths remain available.
 - **Preferences `echomusic_settings` and `echo_wrapped_banner_dismissed_2026`:** existing
   SharedPreferences/DataStore keys. Keeping them lets upgrades continue reading prior user
   settings and dismissal state.

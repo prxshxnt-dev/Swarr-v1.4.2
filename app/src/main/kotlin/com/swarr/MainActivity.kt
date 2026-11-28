@@ -210,6 +210,7 @@ import echo.music.iad1tya.ui.menu.YouTubeSongMenu
 import echo.music.iad1tya.ui.player.BottomSheetPlayer
 import echo.music.iad1tya.ui.screens.Screens
 import echo.music.iad1tya.ui.screens.SettingDialoge
+import echo.music.iad1tya.ui.screens.DeveloperIntroDialog
 import echo.music.iad1tya.ui.screens.WelcomeDialog
 import echo.music.iad1tya.ui.screens.navigationBuilder
 import echo.music.iad1tya.ui.screens.settings.DarkMode
@@ -1142,12 +1143,17 @@ class MainActivity : ComponentActivity() {
         val snackbarHostState = remember { SnackbarHostState() }
         var showSettingDialoge by remember { mutableStateOf(false) }
 
+        var showDeveloperIntroDialog by remember { mutableStateOf(false) }
         var showWelcomeDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
           val prefs = context.dataStore.data.first()
+          val hasSeenDeveloperIntro =
+            prefs[echo.music.iad1tya.constants.HasSeenSwarrDeveloperIntroKey] ?: false
           val lastOpened = prefs[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] ?: -1
-          if (lastOpened < BuildConfig.VERSION_CODE) {
+          if (!hasSeenDeveloperIntro) {
+            showDeveloperIntroDialog = true
+          } else if (lastOpened < BuildConfig.VERSION_CODE) {
             showWelcomeDialog = true
           }
         }
@@ -1988,6 +1994,25 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(route)
               },
               homeViewModel = homeViewModel,
+            )
+          }
+
+          if (showDeveloperIntroDialog) {
+            DeveloperIntroDialog(
+              onDismissRequest = {
+                showDeveloperIntroDialog = false
+                coroutineScope.launch {
+                  context.dataStore.edit {
+                    it[echo.music.iad1tya.constants.HasSeenSwarrDeveloperIntroKey] = true
+                  }
+                  val latestPrefs = context.dataStore.data.first()
+                  val lastOpened =
+                    latestPrefs[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] ?: -1
+                  if (lastOpened < BuildConfig.VERSION_CODE) {
+                    showWelcomeDialog = true
+                  }
+                }
+              },
             )
           }
 

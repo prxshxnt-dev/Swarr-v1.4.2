@@ -111,11 +111,13 @@ fun AboutScreen(
           DeveloperProfileCard(
             name = "Prashant",
             username = "prxshxnt-dev",
+            description = "Contributes to building and maintaining Swarr.",
             onClick = { uriHandler.openUri("https://github.com/prxshxnt-dev") },
           )
           DeveloperProfileCard(
             name = "Sachit",
             username = "sachit1751-art",
+            description = "Contributes to building and maintaining Swarr.",
             onClick = { uriHandler.openUri("https://github.com/sachit1751-art") },
           )
         }
@@ -184,6 +186,7 @@ private fun SectionTitle(title: String) {
 private fun DeveloperProfileCard(
   name: String,
   username: String,
+  description: String,
   onClick: () -> Unit,
 ) {
   Card(
@@ -214,7 +217,12 @@ private fun DeveloperProfileCard(
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = "Swarr developer",
+          text = "Developer",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+          text = description,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

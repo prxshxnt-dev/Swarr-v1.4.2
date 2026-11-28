@@ -1175,7 +1175,7 @@ constructor(
     val likeIcon =
       if (isLiked) R.drawable.ic_widget_heart_filled_clean else R.drawable.ic_widget_heart_clean
     views.setImageViewResource(R.id.widget_like_icon, likeIcon)
-    views.setImageViewResource(R.id.widget_soundwave_logo, R.drawable.icon)
+    views.setImageViewResource(R.id.widget_soundwave_logo, R.drawable.ic_qs_swarr_logo)
 
     if (duration > 0) {
       val level =
