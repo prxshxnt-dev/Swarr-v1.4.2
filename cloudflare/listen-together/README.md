@@ -32,7 +32,22 @@ The Worker expects two Durable Object namespace bindings:
 
 Both classes require SQLite-backed Durable Object migrations. Create the bindings and migrations in a non-production environment first. Do not point the Android app at this Worker until the compatibility and multi-device tests below pass.
 
-This repository did not previously contain Cloudflare Worker configuration. Follow the current Cloudflare `cf` CLI workflow for a new project; do not add a Wrangler configuration as a shortcut. No Cloudflare resource has been created or deployed by this branch.
+The Worker is configured by `wrangler.jsonc` for local development and the Cloudflare Vitest simulator. The configuration registers both classes as SQLite-backed Durable Objects. No Cloudflare resource has been created or deployed by this branch.
+
+## Local validation
+
+From this directory, run:
+
+```sh
+npm install
+npm run typecheck
+npm test
+npm run dev
+```
+
+The integration suite covers a host and guest on separate WebSocket connections, room creation/join approval, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, and room-state recovery after Durable Object eviction.
+
+The repository workflow at `.github/workflows/listen-together-worker.yml` runs the type-check and tests for changes to this folder.
 
 ## Important rollout rules
 
@@ -46,11 +61,12 @@ This repository did not previously contain Cloudflare Worker configuration. Foll
 
 ## Known limitations — do not treat as production-ready
 
-- Automated integration tests and a full TypeScript build have not yet been run.
+- Automated integration tests and a full TypeScript build are added, but have not yet been confirmed green in CI.
 - Protobuf frames are not supported; JSON is the compatibility path for this increment.
-- Chat/join/create rate limiting and stronger abuse controls still need to be added.
+- Basic per-room throttling exists for chat, suggestions, playback and moderation; global per-IP controls for room creation/join attempts still need to be configured before public rollout.
 - The current app protocol has no account-authentication handshake; room membership is protected by random session tokens.
 - Buffer readiness and playback timing need real multi-device testing, especially around track changes and late joins.
+- The current draft PR is not approved or merged; no production configuration has changed.
 - This backend has not been deployed, and the Android default endpoint has not been changed.
 
 ## Validation checklist
