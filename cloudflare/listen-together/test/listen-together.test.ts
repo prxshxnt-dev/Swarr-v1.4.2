@@ -194,6 +194,13 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     host.socket.close();
   });
 
+  it("enforces the per-IP request bucket", async () => {
+    const limiter = env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName("listen-together-test-ip"));
+    expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(true);
+    expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(true);
+    expect(await limiter.consume("test_bucket", 2, 60_000)).toBe(false);
+  });
+
   it("rejects malformed input and oversized frames", async () => {
     const client = await connectClient();
     client.socket.send("{not-json");
