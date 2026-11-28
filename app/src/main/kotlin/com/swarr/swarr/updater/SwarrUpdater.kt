@@ -686,9 +686,14 @@ suspend fun checkForUpdate(
 
       val currentVersion = BuildConfig.VERSION_NAME
       val targetTagName = targetRelease.getString("tag_name")
+      val releaseLabel = targetRelease.optString("name").ifBlank { targetTagName }
+      val isLegacyEchoOrDesktopRelease =
+        releaseLabel.contains("echo music", ignoreCase = true) ||
+          releaseLabel.contains("desktop", ignoreCase = true)
       // Do not offer an older release just because its tag differs from the installed version.
       // This also prevents legacy Echo-era tags from appearing as updates to newer Swarr builds.
-      val shouldShow = isNewerVersion(targetTagName, currentVersion)
+      val shouldShow =
+        !isLegacyEchoOrDesktopRelease && isNewerVersion(targetTagName, currentVersion)
 
       if (shouldShow) {
         val tagWithPrefix = targetRelease.getString("tag_name")
