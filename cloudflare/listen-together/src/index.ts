@@ -44,10 +44,17 @@ type Room = {
   rate_limits: Record<string, number[]>;
   created_at: number;
 };
-type SocketAttachment = { clientSessionId: string; roomCode?: string; userId?: string; pendingRoomCode?: string };
+type SocketAttachment = {
+  clientSessionId: string;
+  clientIp?: string;
+  roomCode?: string;
+  userId?: string;
+  pendingRoomCode?: string;
+};
 export type Env = {
   CLIENT_SESSIONS: DurableObjectNamespace<ClientSession>;
   ROOMS: DurableObjectNamespace<ListenTogetherRoom>;
+  RATE_LIMITERS: DurableObjectNamespace<RateLimiter>;
 };
 
 const MAX_FRAME_BYTES = 64 * 1024;
@@ -135,6 +142,10 @@ export default {
     if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("Expected a WebSocket upgrade", { status: 426 });
     }
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
+    const connectionAllowed = await env.RATE_LIMITERS.get(env.RATE_LIMITERS.idFromName(clientIp))
+      .consume("websocket_connect", 60, 60_000);
+    if (!connectionAllowed) return response({ error: "rate_limited" }, 429);
     const id = env.CLIENT_SESSIONS.newUniqueId();
     return env.CLIENT_SESSIONS.get(id).fetch(request);
   },
@@ -154,8 +165,9 @@ export class ClientSession extends DurableObject<Env> {
     const client = pair[0];
     const server = pair[1];
     const clientSessionId = this.ctx.id.toString();
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ clientSessionId } satisfies SocketAttachment);
+    server.serializeAttachment({ clientSessionId, clientIp } satisfies SocketAttachment);
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -235,6 +247,22 @@ export class ClientSession extends DurableObject<Env> {
     } catch {
       ws.send(envelope("error", { code: "invalid_message", message: "Invalid JSON message" }));
       return;
+    }
+
+    const ipPolicy =
+      msg.type === "create_room" ? { limit: 5, windowMs: 10 * 60_000 } :
+      msg.type === "join_room" ? { limit: 20, windowMs: 60_000 } : null;
+    if (ipPolicy) {
+      const clientIp = attachment.clientIp || "unknown";
+      const allowed = await this.env.RATE_LIMITERS.get(this.env.RATE_LIMITERS.idFromName(clientIp))
+        .consume(msg.type, ipPolicy.limit, ipPolicy.windowMs);
+      if (!allowed) {
+        ws.send(envelope("error", {
+          code: "rate_limited",
+          message: "Too many room requests from this network. Please wait and try again.",
+        }));
+        return;
+      }
     }
 
     try {
@@ -848,5 +876,48 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           await fail("unknown_message", "Unsupported message type");
       }
     });
+  }
+}
+
+export class RateLimiter extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    ctx.blockConcurrencyWhile(async () => {
+      ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS rate_limit_buckets (
+          bucket TEXT PRIMARY KEY,
+          window_started_at INTEGER NOT NULL,
+          request_count INTEGER NOT NULL
+        )
+      `);
+    });
+  }
+
+  async consume(bucket: string, limit: number, windowMs: number): Promise<boolean> {
+    const now = Date.now();
+    const row = this.ctx.storage.sql.exec<{
+      window_started_at: number;
+      request_count: number;
+    }>(
+      "SELECT window_started_at, request_count FROM rate_limit_buckets WHERE bucket = ?",
+      bucket,
+    ).toArray()[0];
+
+    if (!row || now - row.window_started_at >= windowMs) {
+      this.ctx.storage.sql.exec(
+        "INSERT INTO rate_limit_buckets (bucket, window_started_at, request_count) VALUES (?, ?, 1) ON CONFLICT(bucket) DO UPDATE SET window_started_at = excluded.window_started_at, request_count = 1",
+        bucket,
+        now,
+      );
+      return true;
+    }
+
+    if (row.request_count >= limit) return false;
+
+    this.ctx.storage.sql.exec(
+      "UPDATE rate_limit_buckets SET request_count = request_count + 1 WHERE bucket = ?",
+      bucket,
+    );
+    return true;
   }
 }
