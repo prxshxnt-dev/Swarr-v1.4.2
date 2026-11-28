@@ -47,7 +47,7 @@ npm test
 npm run dev
 ```
 
-The integration suite covers a host and guest on separate WebSocket connections, room creation/join approval, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, per-IP rate limits, room-state recovery after Durable Object eviction, and hibernatable ClientSession sockets across eviction.
+The integration suite covers multiple WebSocket clients, room creation/join approval, host failover, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, per-IP rate limits, room-state recovery after Durable Object eviction, and hibernatable ClientSession sockets across eviction.
 
 The repository workflow at `.github/workflows/listen-together-worker.yml` runs the type-check and tests for changes to this folder.
 
@@ -63,7 +63,7 @@ The repository workflow at `.github/workflows/listen-together-worker.yml` runs t
 
 ## Known limitations — do not treat as production-ready
 
-- Automated integration tests and a full TypeScript build are added, but have not yet been confirmed green in CI.
+- The Worker TypeScript check and all 7 integration tests have passed in GitHub Actions on this branch. Re-run them after subsequent changes.
 - Protobuf frames are not supported; JSON is the compatibility path for this increment.
 - Rate limits are application-level per-IP and per-room buckets. Add Cloudflare edge/WAF protection and review thresholds before public rollout.
 - The current Android protocol has no host-side pending-request-cancelled event. The backend frees disconnected/expired pending requests and tells the guest, but the host UI may retain a stale pending item until refreshed or manually cleared. Add a backwards-compatible client event before public rollout.
