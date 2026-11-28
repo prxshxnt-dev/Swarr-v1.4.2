@@ -242,6 +242,7 @@ export class ClientSession extends DurableObject<Env> {
       if (msg.type === "create_room") {
         const username = cleanText(msg.payload?.username, MAX_USERNAME);
         if (!username) return this.sendError(ws, "invalid_username", "A username is required");
+        await this.detachCurrent(attachment);
         const created = await this.createRoom(username, attachment.clientSessionId);
         if (created) {
           await this.bindRoom(created.roomCode, created.userId);
@@ -260,6 +261,7 @@ export class ClientSession extends DurableObject<Env> {
         if (!/^[A-Z0-9]{4,8}$/.test(roomCode) || !username) {
           return this.sendError(ws, "invalid_join", "Check the room code and username");
         }
+        await this.detachCurrent(attachment);
         await this.bindPendingRoom(roomCode);
         const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(roomCode))
           .requestJoin(roomCode, username, attachment.clientSessionId);
@@ -330,6 +332,16 @@ export class ClientSession extends DurableObject<Env> {
 
   private sendError(ws: WebSocket, code: string, message: string): void {
     ws.send(envelope("error", { code, message }));
+  }
+
+  private async detachCurrent(attachment: SocketAttachment): Promise<void> {
+    if (attachment.roomCode && attachment.userId) {
+      await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.roomCode))
+        .handleClientMessage(attachment.userId, attachment.clientSessionId, { type: "leave_room" });
+    } else if (attachment.pendingRoomCode) {
+      await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.pendingRoomCode))
+        .cancelPending(attachment.clientSessionId);
+    }
   }
 
   private async createRoom(username: string, clientSessionId: string) {
