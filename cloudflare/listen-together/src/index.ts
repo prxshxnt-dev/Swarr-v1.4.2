@@ -212,6 +212,9 @@ export class ClientSession extends DurableObject<Env> {
         try { roomCode = fromBase64Url(parts[1]); userId = fromBase64Url(parts[2]); } catch {
           return this.sendError(ws, "session_not_found", "Session is invalid or expired");
         }
+        if (!/^[A-Z0-9]{4,8}$/.test(roomCode) || userId.length > 80 || !parts[3]) {
+          return this.sendError(ws, "session_not_found", "Session is invalid or expired");
+        }
         const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(roomCode))
           .reconnect(userId, parts[3], attachment.clientSessionId);
         if (!result.ok) return this.sendError(ws, "session_not_found", "Session is invalid or expired");
@@ -344,7 +347,6 @@ export class ListenTogetherRoom extends DurableObject<Env> {
         buffer_ready: [], suggestions: [], created_at: now,
       };
       await this.save(room);
-      await this.session(clientSessionId).bindRoom(roomCode, userId);
       return { ok: true, userId, token };
     });
   }
@@ -376,7 +378,6 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       user.client_session_id = clientSessionId;
       user.is_connected = true;
       await this.save(room);
-      await this.session(clientSessionId).bindRoom(room.room_code, userId);
       await this.broadcast(room, "user_reconnected", { user_id: userId, username: user.username }, userId);
       if (oldSession !== clientSessionId) {
         // The previous socket is no longer authoritative; its next message will be rejected by its session mapping.
