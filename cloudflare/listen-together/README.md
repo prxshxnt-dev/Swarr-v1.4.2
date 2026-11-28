@@ -20,6 +20,7 @@ The client starts in JSON mode and only upgrades after receiving a Protobuf fram
 - Supports room creation, join requests, host approval/rejection, reconnect tokens, leave/kick/host transfer, room settings, playback actions, queue and volume sync, sync-state requests, buffering notifications, chat, and track suggestions.
 - Session secrets are random; only a SHA-256 digest is persisted. Reconnect tokens carry the room/user routing data needed by the existing one-field reconnect message.
 - Server-side role checks are applied to host-only actions and participant playback control.
+- Per-IP Durable Object throttling limits WebSocket connections (60/minute), room creation (5/10 minutes) and join attempts (20/minute). Per-room throttles also cover chat, suggestions, playback and moderation.
 
 ## Cloudflare bindings required
 
@@ -29,6 +30,7 @@ The Worker expects two Durable Object namespace bindings:
 | --- | --- |
 | `CLIENT_SESSIONS` | `ClientSession` |
 | `ROOMS` | `ListenTogetherRoom` |
+| `RATE_LIMITERS` | `RateLimiter` |
 
 Both classes require SQLite-backed Durable Object migrations. Create the bindings and migrations in a non-production environment first. Do not point the Android app at this Worker until the compatibility and multi-device tests below pass.
 
@@ -63,7 +65,7 @@ The repository workflow at `.github/workflows/listen-together-worker.yml` runs t
 
 - Automated integration tests and a full TypeScript build are added, but have not yet been confirmed green in CI.
 - Protobuf frames are not supported; JSON is the compatibility path for this increment.
-- Basic per-room throttling exists for chat, suggestions, playback and moderation; global per-IP controls for room creation/join attempts still need to be configured before public rollout.
+- Rate limits are application-level per-IP and per-room buckets. Add Cloudflare edge/WAF protection and review thresholds before public rollout.
 - The current Android protocol has no host-side pending-request-cancelled event. The backend frees disconnected/expired pending requests and tells the guest, but the host UI may retain a stale pending item until refreshed or manually cleared. Add a backwards-compatible client event before public rollout.
 - The current app protocol has no account-authentication handshake; room membership is protected by random session tokens.
 - Buffer readiness and playback timing need real multi-device testing, especially around track changes and late joins.
