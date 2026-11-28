@@ -178,12 +178,12 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
 
     host.socket.close();
     await guest.next("user_disconnected");
+    const hostChanged = await guest.next("host_changed");
+    expect(hostChanged.payload?.new_host_id).toBe(guestId);
 
-    const promotedGuest = await connectClient();
-    promotedGuest.send("reconnect", { session_token: guestToken });
-    const promoted = await promotedGuest.next("reconnected");
-    expect(promoted.payload?.is_host).toBe(true);
-    expect(promoted.payload?.state?.host_id).toBe(guestId);
+    guest.send("request_sync");
+    const promotedState = await guest.next("sync_state");
+    expect(promotedState.payload?.host_id).toBe(guestId);
 
     const formerHost = await connectClient();
     formerHost.send("reconnect", { session_token: hostToken });
@@ -191,7 +191,6 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     expect(formerHostState.payload?.is_host).toBe(false);
     expect(formerHostState.payload?.state?.host_id).toBe(guestId);
 
-    promotedGuest.socket.close();
     formerHost.socket.close();
     guest.socket.close();
   });
