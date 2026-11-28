@@ -273,9 +273,15 @@ export class ListenTogetherRoom extends DurableObject<Env> {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     ctx.blockConcurrencyWhile(async () => {
-      const room = await ctx.storage.get<Room>("room");
+      ctx.storage.sql.exec(`
+        CREATE TABLE IF NOT EXISTS room_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          json TEXT NOT NULL
+        )
+      `);
+      const room = await this.load();
       if (room && Date.now() - room.created_at > ROOM_IDLE_MS && room.users.every((u) => !u.is_connected)) {
-        await ctx.storage.deleteAll();
+        this.deleteRoom();
       }
     });
   }
@@ -287,11 +293,22 @@ export class ListenTogetherRoom extends DurableObject<Env> {
   }
 
   private async load(): Promise<Room | null> {
-    return (await this.ctx.storage.get<Room>("room")) ?? null;
+    const row = this.ctx.storage.sql.exec<{ json: string }>(
+      "SELECT json FROM room_state WHERE id = 1",
+    ).toArray()[0];
+    if (!row) return null;
+    try { return JSON.parse(row.json) as Room; } catch { return null; }
   }
 
   private async save(room: Room): Promise<void> {
-    await this.ctx.storage.put("room", room);
+    this.ctx.storage.sql.exec(
+      "INSERT INTO room_state (id, json) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET json = excluded.json",
+      JSON.stringify(room),
+    );
+  }
+
+  private deleteRoom(): void {
+    this.ctx.storage.sql.exec("DELETE FROM room_state WHERE id = 1");
   }
 
   private session(clientSessionId: string) {
@@ -388,7 +405,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const removed = room.users.filter((u) => !u.is_connected);
       room.users = room.users.filter((u) => u.is_connected);
       if (!room.users.length || (now - room.created_at > ROOM_IDLE_MS && !room.users.length)) {
-        await this.ctx.storage.deleteAll();
+        this.deleteRoom();
         return;
       }
       for (const user of removed) {
@@ -433,7 +450,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             }
           }
           await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
-          if (!room.users.length) await this.ctx.storage.deleteAll(); else await this.save(room);
+          if (!room.users.length) this.deleteRoom(); else await this.save(room);
           break;
         case "approve_join": {
           if (!isHost) return fail("forbidden", "Only the host can approve participants");
