@@ -261,8 +261,17 @@ export class ClientSession extends DurableObject<Env> {
       msg.type === "join_room" ? { limit: 20, windowMs: 60_000 } : null;
     if (ipPolicy) {
       const clientIp = attachment.clientIp || "unknown";
-      const allowed = await this.env.RATE_LIMITERS.get(this.env.RATE_LIMITERS.idFromName(clientIp))
-        .consume(msg.type, ipPolicy.limit, ipPolicy.windowMs);
+      let allowed = false;
+      try {
+        allowed = await this.env.RATE_LIMITERS.get(this.env.RATE_LIMITERS.idFromName(clientIp))
+          .consume(msg.type, ipPolicy.limit, ipPolicy.windowMs);
+      } catch {
+        ws.send(envelope("error", {
+          code: "rate_limiter_unavailable",
+          message: "Room requests are temporarily unavailable. Please try again.",
+        }));
+        return;
+      }
       if (!allowed) {
         ws.send(envelope("error", {
           code: "rate_limited",
