@@ -61,10 +61,10 @@ const response = (body: unknown, status = 200) =>
 const envelope = (type: string, payload?: JsonRecord | null) =>
   JSON.stringify({ type, ...(payload == null ? {} : { payload }) });
 const cleanText = (value: unknown, max: number) =>
-  typeof value === "string" ? value.replace(/[\\u0000-\\u001F\\u007F]/g, "").trim().slice(0, max) : "";
+  typeof value === "string" ? value.split("").filter((char) => { const code = char.charCodeAt(0); return code >= 32 && code !== 127; }).join("").trim().slice(0, max) : "";
 const randomId = () => crypto.randomUUID();
 const base64Url = (value: string) =>
-  btoa(value).replace(/=/g, "").replace(/\\+/g, "-").replace(/\\//g, "_");
+  btoa(value).replaceAll("=", "").replaceAll("+", "-").replaceAll("/", "_");
 const fromBase64Url = (value: string) =>
   atob(value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (value.length % 4)) % 4));
 const sha256 = async (value: string) => {
