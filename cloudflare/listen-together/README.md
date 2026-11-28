@@ -64,6 +64,7 @@ The repository workflow at `.github/workflows/listen-together-worker.yml` runs t
 - Automated integration tests and a full TypeScript build are added, but have not yet been confirmed green in CI.
 - Protobuf frames are not supported; JSON is the compatibility path for this increment.
 - Basic per-room throttling exists for chat, suggestions, playback and moderation; global per-IP controls for room creation/join attempts still need to be configured before public rollout.
+- The current Android protocol has no host-side pending-request-cancelled event. The backend frees disconnected/expired pending requests and tells the guest, but the host UI may retain a stale pending item until refreshed or manually cleared. Add a backwards-compatible client event before public rollout.
 - The current app protocol has no account-authentication handshake; room membership is protected by random session tokens.
 - Buffer readiness and playback timing need real multi-device testing, especially around track changes and late joins.
 - The current draft PR is not approved or merged; no production configuration has changed.
