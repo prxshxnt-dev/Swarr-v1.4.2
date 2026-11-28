@@ -579,8 +579,10 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           });
         }
       }
+      room.buffer_ready = room.buffer_ready.filter((id) => room.users.some((user) => user.user_id === id));
       await this.save(room);
       await this.scheduleAlarm(room);
+      await this.broadcastBufferStatus(room);
     });
   }
 
