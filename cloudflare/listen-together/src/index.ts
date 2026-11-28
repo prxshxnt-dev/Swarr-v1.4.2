@@ -592,12 +592,6 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       room.pending = room.pending.filter(
         (pending) => now - (pending.created_at ?? 0) < JOIN_REQUEST_TTL_MS,
       );
-      for (const pending of expiredPending) {
-        await this.session(pending.client_session_id).clearPending().catch(() => undefined);
-        await this.send(pending.client_session_id, "join_rejected", {
-          reason: "Join request expired",
-        }).catch(() => undefined);
-      }
 
       const expiredUsers = room.users.filter(
         (user) => !user.is_connected && now - (user.disconnected_at ?? 0) >= SESSION_GRACE_MS,
@@ -606,27 +600,41 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       room.users = room.users.filter((user) => !expiredIds.has(user.user_id));
 
       if (!room.users.length) {
+        for (const pending of expiredPending) {
+          await this.session(pending.client_session_id).clearPending().catch(() => undefined);
+          await this.send(pending.client_session_id, "join_rejected", {
+            reason: "Join request expired",
+          }).catch(() => undefined);
+        }
         await this.rejectPending(room, "Room closed");
         this.deleteRoom();
         return;
       }
 
-      for (const user of expiredUsers) {
-        await this.broadcast(room, "user_left", { user_id: user.user_id, username: user.username });
-      }
+      let hostChange: { new_host_id: string; new_host_name: string } | null = null;
       if (!room.users.some((user) => user.user_id === room.host_id)) {
         const next = room.users[0];
-        if (next) {
-          room.host_id = next.user_id;
-          room.users.forEach((user) => { user.is_host = user.user_id === next.user_id; });
-          await this.broadcast(room, "host_changed", {
-            new_host_id: next.user_id, new_host_name: next.username,
-          });
-        }
+        room.host_id = next.user_id;
+        room.users.forEach((user) => {
+          user.is_host = user.user_id === next.user_id;
+        });
+        hostChange = { new_host_id: next.user_id, new_host_name: next.username };
       }
+
       room.buffer_ready = room.buffer_ready.filter((id) => room.users.some((user) => user.user_id === id));
       await this.save(room);
       await this.scheduleAlarm(room);
+
+      for (const pending of expiredPending) {
+        await this.session(pending.client_session_id).clearPending().catch(() => undefined);
+        await this.send(pending.client_session_id, "join_rejected", {
+          reason: "Join request expired",
+        }).catch(() => undefined);
+      }
+      for (const user of expiredUsers) {
+        await this.broadcast(room, "user_left", { user_id: user.user_id, username: user.username });
+      }
+      if (hostChange) await this.broadcast(room, "host_changed", hostChange);
       await this.broadcastBufferStatus(room);
     });
   }
@@ -670,28 +678,38 @@ export class ListenTogetherRoom extends DurableObject<Env> {
         case "ping":
           await this.send(clientSessionId, "pong");
           break;
-        case "leave_room":
+        case "leave_room": {
           room.users = room.users.filter((u) => u.user_id !== userId);
           room.pending = room.pending.filter((u) => u.client_session_id !== clientSessionId);
-          await this.session(clientSessionId).clearRoom(userId);
+          room.buffer_ready = room.buffer_ready.filter((id) => id !== userId);
+
+          let hostChange: { new_host_id: string; new_host_name: string } | null = null;
           if (room.host_id === userId) {
             const next = room.users[0];
             if (next) {
-              room.host_id = next.user_id; next.is_host = true;
-              await this.broadcast(room, "host_changed", { new_host_id: next.user_id, new_host_name: next.username });
+              room.host_id = next.user_id;
+              room.users.forEach((participant) => {
+                participant.is_host = participant.user_id === next.user_id;
+              });
+              hostChange = { new_host_id: next.user_id, new_host_name: next.username };
             }
           }
-          room.buffer_ready = room.buffer_ready.filter((id) => id !== userId);
-          await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
+
           if (!room.users.length) {
             await this.rejectPending(room, "Room closed");
             this.deleteRoom();
-          } else {
-            await this.save(room);
-            await this.scheduleAlarm(room);
-            await this.broadcastBufferStatus(room);
+            await this.session(clientSessionId).clearRoom(userId);
+            break;
           }
+
+          await this.save(room);
+          await this.scheduleAlarm(room);
+          await this.session(clientSessionId).clearRoom(userId);
+          if (hostChange) await this.broadcast(room, "host_changed", hostChange);
+          await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
+          await this.broadcastBufferStatus(room);
           break;
+        }
         case "approve_join": {
           if (!isHost) return fail("forbidden", "Only the host can approve participants");
           const targetId = cleanText(p.user_id, 80);
