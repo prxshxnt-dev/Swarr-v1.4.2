@@ -152,9 +152,7 @@ export default {
     }
     if (!connectionAllowed) return response({ error: "rate_limited" }, 429);
     const id = env.CLIENT_SESSIONS.newUniqueId();
-    const headers = new Headers(request.headers);
-    headers.set("X-Swarr-Client-IP", clientIp);
-    return env.CLIENT_SESSIONS.get(id).fetch(new Request(request, { headers }));
+    return env.CLIENT_SESSIONS.get(id).fetch(request);
   },
 };
 
@@ -172,8 +170,7 @@ export class ClientSession extends DurableObject<Env> {
     const client = pair[0];
     const server = pair[1];
     const clientSessionId = this.ctx.id.toString();
-    const clientIp = request.headers.get("X-Swarr-Client-IP") ||
-      request.headers.get("CF-Connecting-IP") || "unknown";
+    const clientIp = request.headers.get("CF-Connecting-IP") || "unknown";
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ clientSessionId, clientIp } satisfies SocketAttachment);
     return new Response(null, { status: 101, webSocket: client });
