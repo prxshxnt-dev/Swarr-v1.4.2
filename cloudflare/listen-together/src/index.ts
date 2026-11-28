@@ -398,7 +398,7 @@ export class ClientSession extends DurableObject<Env> {
         .map((b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
       const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(code))
         .create(code, username, clientSessionId);
-      if (result.ok) return { roomCode: code, userId: result.userId, token: result.token };
+      if (result.ok === true) return { roomCode: code, userId: result.userId, token: result.token };
     }
     return null;
   }
@@ -498,7 +498,11 @@ export class ListenTogetherRoom extends DurableObject<Env> {
     return { token: `v1.${base64Url(roomCode)}.${base64Url(userId)}.${secret}`, hash: secret };
   }
 
-  async create(roomCode: string, username: string, clientSessionId: string) {
+  async create(
+    roomCode: string,
+    username: string,
+    clientSessionId: string,
+  ): Promise<{ ok: true; userId: string; token: string } | { ok: false }> {
     return this.exclusive(async () => {
       if (await this.load()) return { ok: false };
       const userId = randomId();
@@ -517,7 +521,11 @@ export class ListenTogetherRoom extends DurableObject<Env> {
     });
   }
 
-  async requestJoin(roomCode: string, username: string, clientSessionId: string) {
+  async requestJoin(
+    roomCode: string,
+    username: string,
+    clientSessionId: string,
+  ): Promise<{ ok: true } | { error: string; message?: string }> {
     return this.exclusive(async () => {
       const room = await this.load();
       if (!room || room.room_code !== roomCode) return { error: "room_not_found" };
