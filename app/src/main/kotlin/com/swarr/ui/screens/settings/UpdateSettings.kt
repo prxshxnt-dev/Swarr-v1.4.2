@@ -84,7 +84,8 @@ fun UpdateSettings(
 
     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
       try {
-        val url = java.net.URL("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
+        val url =
+          java.net.URL("https://api.github.com/repos/prxshxnt-dev/Swarr/releases/latest")
         val json = url.openStream().bufferedReader().use { it.readText() }
         val targetRelease = JSONObject(json)
         releaseNotes = targetRelease.getString("body")
@@ -140,7 +141,8 @@ fun UpdateSettings(
     )
 
     Text(
-      text = "Swarr updates are published through the official GitHub Releases page.",
+      text =
+        "Swarr updates are published through the official GitHub Releases page.",
       style = MaterialTheme.typography.bodySmall,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),

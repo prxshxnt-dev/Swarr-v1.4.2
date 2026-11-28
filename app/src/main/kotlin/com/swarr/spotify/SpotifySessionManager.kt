@@ -30,8 +30,8 @@ import timber.log.Timber
 /**
  * Manages Spotify authentication session state, persistence, and token refreshes.
  *
- * Preserves existing DataStore preference keys so all downstream settings, library observers, and
- * playback components continue working without disruption.
+ * Preserves existing DataStore preference keys so all downstream settings, library
+ * observers, and playback components continue working without disruption.
  */
 object SpotifySessionManager {
   private const val TOKEN_EXPIRY_GRACE_MS = 60_000L

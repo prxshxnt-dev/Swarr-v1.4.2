@@ -6,10 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.swarr.canvasprovider.SwarrCanvasProvider
 import echo.music.iad1tya.applecanvas.AppleMusicCanvasProvider
 import echo.music.iad1tya.canvas.CanvasArtwork
 import echo.music.iad1tya.canvas.TidalCanvasProvider
+import com.swarr.canvasprovider.SwarrCanvasProvider
 import echo.music.iad1tya.ui.player.CanvasArtworkPlaybackCache
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers

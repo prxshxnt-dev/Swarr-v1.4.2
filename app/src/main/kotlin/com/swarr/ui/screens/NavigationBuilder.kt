@@ -57,13 +57,13 @@ import echo.music.iad1tya.ui.screens.settings.BlockedArtistsScreen
 import echo.music.iad1tya.ui.screens.settings.ContentSettings
 import echo.music.iad1tya.ui.screens.settings.DarkMode
 import echo.music.iad1tya.ui.screens.settings.DislikedSongsScreen
+import echo.music.iad1tya.ui.screens.settings.SwarrConnectSettingsScreen
 import echo.music.iad1tya.ui.screens.settings.GlassEffectSettings
 import echo.music.iad1tya.ui.screens.settings.MusicFlowSettings
 import echo.music.iad1tya.ui.screens.settings.PlayerSettings
 import echo.music.iad1tya.ui.screens.settings.PrivacySettings
 import echo.music.iad1tya.ui.screens.settings.SettingsScreen
 import echo.music.iad1tya.ui.screens.settings.StorageSettings
-import echo.music.iad1tya.ui.screens.settings.SwarrConnectSettingsScreen
 import echo.music.iad1tya.ui.screens.settings.ThemeScreen
 import echo.music.iad1tya.ui.screens.settings.UpdateSettings
 import echo.music.iad1tya.ui.screens.settings.UptimeScreen

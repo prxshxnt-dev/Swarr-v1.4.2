@@ -14,9 +14,9 @@ import echo.music.iad1tya.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.security.MessageDigest
 import java.net.HttpURLConnection
 import java.net.URL
-import java.security.MessageDigest
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -270,8 +270,8 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
         packageInfo.signatures
       }
     val signer = signatures?.singleOrNull() ?: return null
-    return MessageDigest.getInstance("SHA-256").digest(signer.toByteArray()).joinToString("") {
-      "%02x".format(it.toInt() and 0xff)
-    }
+    return MessageDigest.getInstance("SHA-256")
+      .digest(signer.toByteArray())
+      .joinToString("") { "%02x".format(it.toInt() and 0xff) }
   }
 }

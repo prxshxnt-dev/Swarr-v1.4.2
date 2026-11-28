@@ -71,10 +71,7 @@ object Wikipedia {
             "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=$enc&utf8=&format=json",
           )
         val conn = url.openConnection() as java.net.HttpURLConnection
-        conn.setRequestProperty(
-          "User-Agent",
-          "Swarr/1.0 (Android; https://github.com/prxshxnt-dev/Swarr)",
-        )
+        conn.setRequestProperty("User-Agent", "Swarr/1.0 (Android; https://github.com/prxshxnt-dev/Swarr)")
         conn.connectTimeout = 4000
         conn.readTimeout = 4000
         val text = conn.inputStream.bufferedReader().use { it.readText() }

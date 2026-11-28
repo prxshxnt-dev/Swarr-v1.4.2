@@ -3,6 +3,7 @@ package echo.music.iad1tya.ui.screens.settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -90,10 +91,9 @@ fun AboutScreen(
   ) { innerPadding ->
     LazyColumn(
       modifier =
-        Modifier.fillMaxSize()
-          .windowInsetsPadding(
-            LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal),
-          ),
+        Modifier.fillMaxSize().windowInsetsPadding(
+          LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal),
+        ),
       contentPadding =
         PaddingValues(
           start = 16.dp,
@@ -142,8 +142,7 @@ private fun AboutAppCard() {
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(28.dp),
-    colors =
-      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
     Column(
@@ -193,8 +192,7 @@ private fun DeveloperProfileCard(
   Card(
     modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     shape = RoundedCornerShape(24.dp),
-    colors =
-      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
     Row(
@@ -253,8 +251,7 @@ private fun ProjectLinkCard(
   Card(
     modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     shape = RoundedCornerShape(22.dp),
-    colors =
-      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
     Row(
@@ -270,11 +267,7 @@ private fun ProjectLinkCard(
       )
       Column(modifier = Modifier.weight(1f)) {
         Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-        Text(
-          subtitle,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
       }
       Icon(
         painter = painterResource(R.drawable.arrow_forward),

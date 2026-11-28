@@ -172,10 +172,9 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.size.Size as CoilSize
 import coil3.toBitmap
+import com.swarr.ui.component.BitPerfectBadge
 import com.music.innertube.models.PODCAST_BROWSE_PREFIX
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_PODCAST_EPISODE
-import com.swarr.ui.component.BitPerfectBadge
-import com.swarr.usbaudio.DacDeviceState
 import dagger.hilt.android.EntryPointAccessors
 import echo.music.iad1tya.LocalDatabase
 import echo.music.iad1tya.LocalDownloadUtil
@@ -211,15 +210,15 @@ import echo.music.iad1tya.constants.ThumbnailCornerRadius
 import echo.music.iad1tya.constants.UseNewPlayerDesignKey
 import echo.music.iad1tya.constants.WavyPlayPauseKey
 import echo.music.iad1tya.db.entities.LyricsEntity
+import echo.music.iad1tya.swarr.getConnectedBluetoothDeviceName
+import echo.music.iad1tya.swarr.isBuds
+import echo.music.iad1tya.swarr.isSpeaker
 import echo.music.iad1tya.extensions.SwipeGesture
 import echo.music.iad1tya.extensions.togglePlayPause
 import echo.music.iad1tya.models.MediaMetadata
 import echo.music.iad1tya.playback.ExoDownloadService
 import echo.music.iad1tya.playback.audio.bluetooth.BluetoothAudioTracker
 import echo.music.iad1tya.spotify.Spotify
-import echo.music.iad1tya.swarr.getConnectedBluetoothDeviceName
-import echo.music.iad1tya.swarr.isBuds
-import echo.music.iad1tya.swarr.isSpeaker
 import echo.music.iad1tya.ui.component.BottomSheet
 import echo.music.iad1tya.ui.component.BottomSheetState
 import echo.music.iad1tya.ui.component.HeartBurstIcon
@@ -245,6 +244,7 @@ import echo.music.iad1tya.utils.isLocalMediaId
 import echo.music.iad1tya.utils.makeTimeString
 import echo.music.iad1tya.utils.rememberEnumPreference
 import echo.music.iad1tya.utils.rememberPreference
+import com.swarr.usbaudio.DacDeviceState
 import java.io.File
 import java.util.Locale
 import kotlin.math.cos

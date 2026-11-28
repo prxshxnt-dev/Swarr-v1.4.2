@@ -2,10 +2,10 @@ package echo.music.iad1tya.ui.screens.equalizer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.swarr.dsp.controller.DspController
 import com.swarr.dsp.core.parser.ParametricEQParser
 import com.swarr.dsp.data.EQProfileRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.InputStream
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

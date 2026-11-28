@@ -65,22 +65,19 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
+import com.swarr.spotify.SpotifyQueue
 import com.music.innertube.YouTube
 import com.music.innertube.models.IpVersion
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.response.PlayerResponse
 import com.music.innertube.pages.PodcastPage
+import dagger.hilt.android.AndroidEntryPoint
 import com.swarr.dsp.audio.AutomixDuckAudioProcessor
 import com.swarr.dsp.audio.CustomEqualizerAudioProcessor
 import com.swarr.dsp.audio.StereoWidenerAudioProcessor
 import com.swarr.dsp.controller.DspController
 import com.swarr.dsp.data.EQProfileRepository
-import com.swarr.spotify.SpotifyQueue
-import com.swarr.usbaudio.UsbAudioDriver
-import com.swarr.usbaudio.UsbDacAudioSink
-import com.swarr.usbaudio.UsbDacManager
-import dagger.hilt.android.AndroidEntryPoint
 import echo.music.iad1tya.MainActivity
 import echo.music.iad1tya.R
 import echo.music.iad1tya.constants.AudioNormalizationKey
@@ -142,6 +139,7 @@ import echo.music.iad1tya.db.entities.RelatedSongMap
 import echo.music.iad1tya.db.entities.Song
 import echo.music.iad1tya.di.DownloadCache
 import echo.music.iad1tya.di.PlayerCache
+import echo.music.iad1tya.swarr.updater.downloadmanager.SwarrNotificationProvider
 import echo.music.iad1tya.extensions.SilentHandler
 import echo.music.iad1tya.extensions.collect
 import echo.music.iad1tya.extensions.collectLatest
@@ -167,7 +165,6 @@ import echo.music.iad1tya.playback.queues.YouTubePlaylistQueue
 import echo.music.iad1tya.playback.queues.YouTubeQueue
 import echo.music.iad1tya.playback.queues.filterExplicit
 import echo.music.iad1tya.playback.queues.filterVideoSongs
-import echo.music.iad1tya.swarr.updater.downloadmanager.SwarrNotificationProvider
 import echo.music.iad1tya.ui.screens.settings.DiscordPresenceManager
 import echo.music.iad1tya.utils.CoilBitmapLoader
 import echo.music.iad1tya.utils.NetworkConnectivityObserver
@@ -179,9 +176,12 @@ import echo.music.iad1tya.utils.dataStore
 import echo.music.iad1tya.utils.get
 import echo.music.iad1tya.utils.isLocalMediaId
 import echo.music.iad1tya.utils.reportException
-import echo.music.iad1tya.widget.MusicWidgetReceiver
 import echo.music.iad1tya.widget.SwarrWidgetManager
+import echo.music.iad1tya.widget.MusicWidgetReceiver
 import echo.music.iad1tya.widget.WidgetQueueItem
+import com.swarr.usbaudio.UsbAudioDriver
+import com.swarr.usbaudio.UsbDacAudioSink
+import com.swarr.usbaudio.UsbDacManager
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.Inet4Address
@@ -860,10 +860,9 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     }
 
     setMediaNotificationProvider(
-      SwarrNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player)
-        .apply {
-          setSmallIcon(R.drawable.ic_launcher_nobg)
-        },
+      SwarrNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player).apply {
+        setSmallIcon(R.drawable.ic_launcher_nobg)
+      },
     )
     player = createExoPlayer()
     _playerFlow.value = player

@@ -3,13 +3,13 @@ package echo.music.iad1tya.ui.screens.equalizer.axion
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.swarr.dsp.controller.DspController
 import com.swarr.dsp.core.models.FilterType
 import com.swarr.dsp.core.models.ParametricEQBand
 import com.swarr.dsp.core.models.SavedEQProfile
 import com.swarr.dsp.data.EQProfileRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
