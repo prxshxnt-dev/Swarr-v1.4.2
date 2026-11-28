@@ -313,7 +313,7 @@ export class ClientSession extends DurableObject<Env> {
         await this.bindPendingRoom(roomCode);
         const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(roomCode))
           .requestJoin(roomCode, username, attachment.clientSessionId);
-        if (typeof result.error === "string") {
+        if ("error" in result) {
           await this.clearPending();
           this.sendError(ws, result.error, result.message ?? "Unable to join room");
         }
