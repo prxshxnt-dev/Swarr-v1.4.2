@@ -95,20 +95,26 @@ const safeTrack = (value: unknown): Track | null => {
     suggested_by: cleanText(t.suggested_by, MAX_USERNAME) || null,
   };
 };
-const roomSnapshot = (room: Room) => ({
-  room_code: room.room_code,
-  host_id: room.host_id,
-  users: room.users.map(({ user_id, username, is_host, is_connected }) => ({
-    user_id, username, is_host, is_connected,
-  })),
-  current_track: room.current_track,
-  is_playing: room.is_playing,
-  position: room.position,
-  last_update: room.last_update,
-  volume: room.volume,
-  queue: room.queue,
-  allow_participant_control: room.allow_participant_control,
-});
+const roomSnapshot = (room: Room) => {
+  const now = Date.now();
+  const position = room.is_playing
+    ? room.position + Math.max(0, now - room.last_update)
+    : room.position;
+  return {
+    room_code: room.room_code,
+    host_id: room.host_id,
+    users: room.users.map(({ user_id, username, is_host, is_connected }) => ({
+      user_id, username, is_host, is_connected,
+    })),
+    current_track: room.current_track,
+    is_playing: room.is_playing,
+    position,
+    last_update: now,
+    volume: room.volume,
+    queue: room.queue,
+    allow_participant_control: room.allow_participant_control,
+  };
+};
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -134,7 +140,8 @@ export class ClientSession extends DurableObject<Env> {
 
   async fetch(request: Request): Promise<Response> {
     const pair = new WebSocketPair();
-    const [client, server] = Object.values(pair);
+    const client = pair[0];
+    const server = pair[1];
     const clientSessionId = this.ctx.id.toString();
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ clientSessionId } satisfies SocketAttachment);
@@ -153,6 +160,25 @@ export class ClientSession extends DurableObject<Env> {
         clientSessionId: this.ctx.id.toString(),
       };
       ws.serializeAttachment({ ...current, roomCode, userId });
+    }
+  }
+
+  async clearRoom(userId: string): Promise<void> {
+    for (const ws of this.ctx.getWebSockets()) {
+      const current = ws.deserializeAttachment() as SocketAttachment | null;
+      if (current?.userId === userId) {
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+      }
+    }
+  }
+
+  async revoke(userId: string): Promise<void> {
+    for (const ws of this.ctx.getWebSockets()) {
+      const current = ws.deserializeAttachment() as SocketAttachment | null;
+      if (current?.userId === userId) {
+        try { ws.send(envelope("kicked", { reason: "Removed by host" })); } catch {}
+        try { ws.close(4003, "Session revoked"); } catch {}
+      }
     }
   }
 
@@ -443,6 +469,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
         case "leave_room":
           room.users = room.users.filter((u) => u.user_id !== userId);
           room.pending = room.pending.filter((u) => u.client_session_id !== clientSessionId);
+          await this.session(clientSessionId).clearRoom(userId);
           if (room.host_id === userId) {
             const next = room.users[0];
             if (next) {
@@ -494,6 +521,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           room.users = room.users.filter((u) => u.user_id !== target.user_id);
           await this.save(room);
           await this.send(target.client_session_id, "kicked", { reason: cleanText(p.reason, 200) || "Removed by host" });
+          await this.session(target.client_session_id).clearRoom(target.user_id);
           await this.broadcast(room, "user_left", { user_id: target.user_id, username: target.username });
           break;
         }
@@ -522,6 +550,9 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           const track = safeTrack(p.track_info);
           if (["change_track", "queue_add"].includes(action) && !track) return fail("invalid_track", "Track metadata is invalid");
           const now = Date.now();
+          const livePosition = room.is_playing
+            ? room.position + Math.max(0, now - room.last_update)
+            : room.position;
           const payload: JsonRecord = { action, server_time: now };
           if (typeof p.track_id === "string") payload.track_id = cleanText(p.track_id, 160);
           if (typeof p.position === "number" && Number.isFinite(p.position)) payload.position = Math.max(0, Math.min(p.position, 24 * 60 * 60 * 1000));
@@ -535,10 +566,16 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           }
 
           switch (action) {
-            case "play": room.is_playing = true; room.position = Number(payload.position ?? room.position); break;
-            case "pause": room.is_playing = false; room.position = Number(payload.position ?? room.position); break;
-            case "seek": room.position = Number(payload.position ?? room.position); break;
-            case "change_track": room.current_track = track; room.is_playing = false; room.position = 0; room.buffer_track_id = track!.id; room.buffer_ready = [userId]; break;
+            case "play": room.is_playing = true; room.position = Number(payload.position ?? livePosition); break;
+            case "pause": room.is_playing = false; room.position = Number(payload.position ?? livePosition); break;
+            case "seek": room.position = Number(payload.position ?? livePosition); break;
+            case "change_track":
+              room.current_track = track;
+              room.is_playing = false;
+              room.position = 0;
+              room.buffer_track_id = track!.id;
+              room.buffer_ready = [userId];
+              break;
             case "sync_queue": room.queue = (payload.queue as Track[] | undefined) ?? []; break;
             case "queue_add": if (track) room.queue = p.insert_next === true ? [track, ...room.queue] : [...room.queue, track]; break;
             case "queue_remove": room.queue = room.queue.filter((t) => t.id !== payload.track_id); break;
@@ -547,17 +584,22 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             case "skip_next": case "skip_prev": break;
             default: return fail("unknown_playback_action", "Unsupported playback action");
           }
+          if (Array.isArray(payload.queue)) room.queue = payload.queue as Track[];
           room.last_update = now;
           await this.save(room);
+          if (action === "change_track") {
+            const waitingFor = room.users.filter((u) => u.is_connected && u.user_id !== userId).map((u) => u.user_id);
+            if (waitingFor.length) {
+              await this.broadcast(room, "buffer_wait", { track_id: track!.id, waiting_for: waitingFor });
+            } else {
+              await this.broadcast(room, "buffer_complete", { track_id: track!.id });
+            }
+          }
           await this.broadcast(room, "sync_playback", payload, userId);
           break;
         }
         case "request_sync":
-          await this.send(clientSessionId, "sync_state", {
-            current_track: room.current_track, is_playing: room.is_playing,
-            position: room.position, last_update: room.last_update,
-            queue: room.queue, volume: room.volume,
-          });
+          await this.send(clientSessionId, "sync_state", roomSnapshot(room));
           break;
         case "buffer_ready": {
           const trackId = cleanText(p.track_id, 160);
