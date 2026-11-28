@@ -370,6 +370,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       `);
       const room = await this.load();
       if (room && Date.now() - room.created_at > ROOM_IDLE_MS && room.users.every((u) => !u.is_connected)) {
+        await this.rejectPending(room, "Room closed");
         this.deleteRoom();
       }
     });
