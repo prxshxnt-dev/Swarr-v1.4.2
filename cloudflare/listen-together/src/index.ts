@@ -477,6 +477,19 @@ export class ListenTogetherRoom extends DurableObject<Env> {
     });
   }
 
+  async cancelPending(clientSessionId: string): Promise<void> {
+    await this.exclusive(async () => {
+      const room = await this.load();
+      if (!room) return;
+      const previousLength = room.pending.length;
+      room.pending = room.pending.filter((pending) => pending.client_session_id !== clientSessionId);
+      if (room.pending.length !== previousLength) {
+        await this.save(room);
+        await this.scheduleAlarm(room);
+      }
+    });
+  }
+
   async disconnectUser(userId: string, clientSessionId: string) {
     return this.exclusive(async () => {
       const room = await this.load();
@@ -495,26 +508,46 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const room = await this.load();
       if (!room) return;
       const now = Date.now();
-      const removed = room.users.filter((u) => !u.is_connected);
-      room.users = room.users.filter((u) => u.is_connected);
-      if (!room.users.length || (now - room.created_at > ROOM_IDLE_MS && !room.users.length)) {
+
+      const expiredPending = room.pending.filter(
+        (pending) => now - (pending.created_at ?? 0) >= JOIN_REQUEST_TTL_MS,
+      );
+      room.pending = room.pending.filter(
+        (pending) => now - (pending.created_at ?? 0) < JOIN_REQUEST_TTL_MS,
+      );
+      for (const pending of expiredPending) {
+        await this.session(pending.client_session_id).clearPending().catch(() => undefined);
+        await this.send(pending.client_session_id, "join_rejected", {
+          reason: "Join request expired",
+        }).catch(() => undefined);
+      }
+
+      const expiredUsers = room.users.filter(
+        (user) => !user.is_connected && now - (user.disconnected_at ?? 0) >= SESSION_GRACE_MS,
+      );
+      const expiredIds = new Set(expiredUsers.map((user) => user.user_id));
+      room.users = room.users.filter((user) => !expiredIds.has(user.user_id));
+
+      if (!room.users.length) {
         this.deleteRoom();
         return;
       }
-      for (const user of removed) {
+
+      for (const user of expiredUsers) {
         await this.broadcast(room, "user_left", { user_id: user.user_id, username: user.username });
       }
-      if (!room.users.some((u) => u.user_id === room.host_id)) {
+      if (!room.users.some((user) => user.user_id === room.host_id)) {
         const next = room.users[0];
         if (next) {
           room.host_id = next.user_id;
-          next.is_host = true;
+          room.users.forEach((user) => { user.is_host = user.user_id === next.user_id; });
           await this.broadcast(room, "host_changed", {
             new_host_id: next.user_id, new_host_name: next.username,
           });
         }
       }
       await this.save(room);
+      await this.scheduleAlarm(room);
     });
   }
 
