@@ -153,6 +153,31 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     replay.socket.close();
   });
 
+  it("cleans up disconnected pending joiners and rejects waiting guests when a room closes", async () => {
+    const host = await connectClient();
+    const firstGuest = await connectClient();
+    const secondGuest = await connectClient();
+
+    host.send("create_room", { username: "Host" });
+    const created = await host.next("room_created");
+    const roomCode = String(created.payload?.room_code);
+
+    firstGuest.send("join_room", { room_code: roomCode, username: "First Guest" });
+    await host.next("join_request");
+    firstGuest.socket.close();
+
+    secondGuest.send("join_room", { room_code: roomCode, username: "Second Guest" });
+    const secondRequest = await host.next("join_request");
+    expect(secondRequest.payload?.username).toBe("Second Guest");
+
+    host.send("leave_room");
+    const rejected = await secondGuest.next("join_rejected");
+    expect(rejected.payload?.reason).toBe("Room closed");
+
+    host.socket.close();
+    secondGuest.socket.close();
+  });
+
   it("persists room state after its Durable Object is evicted", async () => {
     const host = await connectClient();
     host.send("create_room", { username: "Persistence Host" });
