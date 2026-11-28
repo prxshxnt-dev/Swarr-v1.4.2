@@ -1,6 +1,6 @@
 # Swarr Listen Together — Cloudflare backend
 
-This folder contains the first Cloudflare backend implementation for Swarr Listen Together. It is isolated on the `feature/listen-together-cloudflare` branch. The Android application and its current production endpoint have not been changed.
+This folder contains the Cloudflare backend implementation for Swarr Listen Together, now merged into `main`. The Android application and its current production endpoint have not been changed.
 
 ## Compatibility
 
@@ -34,7 +34,7 @@ The Worker expects two Durable Object namespace bindings:
 
 Both classes require SQLite-backed Durable Object migrations. Create the bindings and migrations in a non-production environment first. Do not point the Android app at this Worker until the compatibility and multi-device tests below pass.
 
-The Worker is configured by `wrangler.jsonc` for local development and the Cloudflare Vitest simulator. The configuration registers both classes as SQLite-backed Durable Objects. No Cloudflare resource has been created or deployed by this branch.
+The Worker is configured by `wrangler.jsonc` for local development and the Cloudflare Vitest simulator. The configuration registers all three classes as SQLite-backed Durable Objects. The isolated staging deployment is still pending; no production Worker or Android endpoint has been changed.
 
 ## Local validation
 
@@ -49,7 +49,7 @@ npm run dev
 
 The integration suite covers multiple WebSocket clients, room creation/join approval, host failover, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, per-IP rate limits, room-state recovery after Durable Object eviction, and hibernatable ClientSession sockets across eviction.
 
-The repository workflow at `.github/workflows/listen-together-worker.yml` runs the type-check and tests for changes to this folder.
+The repository workflow at `.github/workflows/listen-together-worker.yml` runs the type-check and tests for changes to this folder. The staging deployment workflow is `.github/workflows/deploy-listen-together-staging.yml`; it runs on relevant pushes to `main` and can also be started manually.
 
 ## Important rollout rules
 
@@ -63,14 +63,14 @@ The repository workflow at `.github/workflows/listen-together-worker.yml` runs t
 
 ## Known limitations — do not treat as production-ready
 
-- The Worker TypeScript check and all 7 integration tests have passed in GitHub Actions on this branch. Re-run them after subsequent changes.
+- The Worker TypeScript check and all 7 integration tests passed in GitHub Actions on `main` at the staging workflow run. Re-run them after subsequent changes.
 - Protobuf frames are not supported; JSON is the compatibility path for this increment.
 - Rate limits are application-level per-IP and per-room buckets. Add Cloudflare edge/WAF protection and review thresholds before public rollout.
 - The current Android protocol has no host-side pending-request-cancelled event. The backend frees disconnected/expired pending requests and tells the guest, but the host UI may retain a stale pending item until refreshed or manually cleared. Add a backwards-compatible client event before public rollout.
 - The current app protocol has no account-authentication handshake; room membership is protected by random session tokens.
 - Buffer readiness and playback timing need real multi-device testing, especially around track changes and late joins.
-- The current draft PR is not approved or merged; no production configuration has changed.
-- This backend has not been deployed, and the Android default endpoint has not been changed.
+- The backend PR has been merged into `main`; no production configuration has changed.
+- The staging deployment has not succeeded yet because the GitHub Actions Cloudflare token currently lacks access to the Worker script secrets endpoint. The Android default endpoint has not been changed.
 
 ## Validation checklist
 
