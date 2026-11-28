@@ -47,7 +47,7 @@ npm test
 npm run dev
 ```
 
-The integration suite covers a host and guest on separate WebSocket connections, room creation/join approval, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, and room-state recovery after Durable Object eviction.
+The integration suite covers a host and guest on separate WebSocket connections, room creation/join approval, playback, buffering, queue synchronization, room settings, participant-control permissions, chat, track suggestions, reconnect, kick-token revocation, malformed/oversized frames, per-IP rate limits, room-state recovery after Durable Object eviction, and hibernatable ClientSession sockets across eviction.
 
 The repository workflow at `.github/workflows/listen-together-worker.yml` runs the type-check and tests for changes to this folder.
 
