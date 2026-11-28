@@ -83,6 +83,44 @@ describe("Listen Together Worker — multi-client JSON protocol", () => {
     expect(playback.payload?.action).toBe("play");
     expect(playback.payload?.server_time).toEqual(expect.any(Number));
 
+    const track = {
+      id: "track-001",
+      title: "Test Track",
+      artist: "Test Artist",
+      duration: 180000,
+      thumbnail: "https://example.com/cover.jpg"
+    };
+    host.send("playback_action", { action: "change_track", track_info: track });
+    const buffering = await guest.next("buffer_wait");
+    expect(buffering.payload?.track_id).toBe("track-001");
+    const changedTrack = await guest.next("sync_playback");
+    expect(changedTrack.payload?.action).toBe("change_track");
+
+    guest.send("buffer_ready", { track_id: "track-001" });
+    const bufferComplete = await host.next("buffer_complete");
+    expect(bufferComplete.payload?.track_id).toBe("track-001");
+
+    host.send("playback_action", { action: "sync_queue", queue: [track], queue_title: "Test Queue" });
+    const queueSync = await guest.next("sync_playback");
+    expect(queueSync.payload?.action).toBe("sync_queue");
+    expect(queueSync.payload?.queue).toHaveLength(1);
+
+    host.send("update_room_settings", { allow_participant_control: true });
+    const settings = await guest.next("room_settings_changed");
+    expect(settings.payload?.allow_participant_control).toBe(true);
+
+    guest.send("playback_action", { action: "pause", position: 2400 });
+    const guestPlayback = await host.next("sync_playback");
+    expect(guestPlayback.payload?.action).toBe("pause");
+
+    guest.send("suggest_track", { track_info: { ...track, id: "suggested-001" } });
+    const suggestion = await host.next("suggestion_received");
+    const suggestionId = String(suggestion.payload?.suggestion_id);
+    expect(suggestion.payload?.from_user_id).toBe(guestId);
+    host.send("approve_suggestion", { suggestion_id: suggestionId });
+    const suggestionApproved = await guest.next("suggestion_approved");
+    expect(suggestionApproved.payload?.suggestion_id).toBe(suggestionId);
+
     guest.send("chat", { message: "hello room" });
     const chat = await host.next("chat");
     expect(chat.payload?.user_id).toBe(guestId);
