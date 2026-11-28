@@ -593,8 +593,20 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       if (!room || !user || user.client_session_id !== clientSessionId) return;
       user.is_connected = false;
       user.disconnected_at = Date.now();
+      let hostChange: { new_host_id: string; new_host_name: string } | null = null;
+      if (room.host_id === userId) {
+        const next = room.users.find((participant) => participant.is_connected);
+        if (next) {
+          room.host_id = next.user_id;
+          room.users.forEach((participant) => {
+            participant.is_host = participant.user_id === next.user_id;
+          });
+          hostChange = { new_host_id: next.user_id, new_host_name: next.username };
+        }
+      }
       await this.save(room);
       await this.broadcast(room, "user_disconnected", { user_id: userId, username: user.username }, userId);
+      if (hostChange) await this.broadcast(room, "host_changed", hostChange);
       await this.scheduleAlarm(room);
       await this.broadcastBufferStatus(room);
     });
@@ -633,7 +645,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
 
       let hostChange: { new_host_id: string; new_host_name: string } | null = null;
       if (!room.users.some((user) => user.user_id === room.host_id)) {
-        const next = room.users[0];
+        const next = room.users.find((user) => user.is_connected) ?? room.users[0];
         room.host_id = next.user_id;
         room.users.forEach((user) => {
           user.is_host = user.user_id === next.user_id;
