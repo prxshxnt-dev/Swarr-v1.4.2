@@ -1,4 +1,4 @@
-import { SELF } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 
 type Envelope = { type: string; payload?: Record<string, any> };
@@ -45,9 +45,9 @@ function makeClient(socket: WebSocket) {
 }
 
 async function connectClient() {
-  const response = await SELF.fetch("http://swarr.test/ws", {
+  const response = await exports.default.fetch(new Request("http://swarr.test/ws", {
     headers: { Upgrade: "websocket" }
-  });
+  }));
   expect(response.status).toBe(101);
   if (!response.webSocket) throw new Error("Worker did not return a WebSocket");
   response.webSocket.accept();
