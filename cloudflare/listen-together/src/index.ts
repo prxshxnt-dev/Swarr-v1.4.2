@@ -91,7 +91,7 @@ const safeTrack = (value: unknown): Track | null => {
   if (!validTrack(value)) return null;
   const t = value as unknown as Track;
   return {
-    id: t.id, title: t.title, artist: t.artist, duration: t.duration,
+    id: cleanText(t.id, 160), title: cleanText(t.title, 300), artist: cleanText(t.artist, 300), duration: t.duration,
     album: cleanText(t.album, 300) || null,
     thumbnail: (() => {
       const thumbnail = cleanText(t.thumbnail, 2048);
@@ -724,6 +724,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           const action = cleanText(p.action, 40);
           const track = safeTrack(p.track_info);
           if (["change_track", "queue_add"].includes(action) && !track) return fail("invalid_track", "Track metadata is invalid");
+          if (action === "sync_queue" && !Array.isArray(p.queue)) return fail("invalid_queue", "A queue is required for queue synchronization");
           const now = Date.now();
           const livePosition = room.is_playing
             ? room.position + Math.max(0, now - room.last_update)
@@ -801,6 +802,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
         }
         case "suggest_track": {
           if (isHost) return fail("invalid_role", "Host cannot suggest a track");
+          if (room.suggestions.length >= 50) return fail("suggestions_full", "The host has too many pending suggestions");
           const track = safeTrack(p.track_info);
           if (!track) return fail("invalid_track", "Track metadata is invalid");
           const suggestion: Suggestion = {
