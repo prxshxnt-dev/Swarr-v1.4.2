@@ -182,13 +182,20 @@ export class ClientSession extends DurableObject<Env> {
       const current = (ws.deserializeAttachment() as SocketAttachment | null) ?? {
         clientSessionId: this.ctx.id.toString(),
       };
-      ws.serializeAttachment({ clientSessionId: current.clientSessionId, roomCode, userId });
+      ws.serializeAttachment({ clientSessionId: current.clientSessionId, clientIp: current.clientIp, roomCode, userId });
     }
   }
 
   async bindPendingRoom(roomCode: string): Promise<void> {
     for (const ws of this.ctx.getWebSockets()) {
-      ws.serializeAttachment({ clientSessionId: this.ctx.id.toString(), pendingRoomCode: roomCode });
+      const current = (ws.deserializeAttachment() as SocketAttachment | null) ?? {
+        clientSessionId: this.ctx.id.toString(),
+      };
+      ws.serializeAttachment({
+        clientSessionId: current.clientSessionId,
+        clientIp: current.clientIp,
+        pendingRoomCode: roomCode,
+      });
     }
   }
 
@@ -196,7 +203,7 @@ export class ClientSession extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
       if (current?.pendingRoomCode) {
-        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId, clientIp: current.clientIp });
       }
     }
   }
