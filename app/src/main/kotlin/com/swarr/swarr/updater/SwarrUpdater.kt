@@ -194,7 +194,16 @@ fun UpdateScreen(navController: NavHostController) {
       delay(1000L)
       checkForUpdate(
         context = context,
-        onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl, apkSha256 ->
+        onSuccess = {
+          tag,
+          isAvailable,
+          changelog,
+          size,
+          date,
+          description,
+          imageUrl,
+          apkUrl,
+          apkSha256 ->
           saveLastCheckedTime(
             context,
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")),
@@ -755,8 +764,10 @@ suspend fun checkForUpdate(
             val apkSizeInBytes = asset.getLong("size")
             apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
             apkDownloadUrl = asset.getString("browser_download_url")
-            apkSha256 = asset.optString("digest").removePrefix("sha256:")
-              .takeIf { it.matches(Regex("^[0-9a-fA-F]{64}$")) }
+            apkSha256 =
+              asset.optString("digest").removePrefix("sha256:").takeIf {
+                it.matches(Regex("^[0-9a-fA-F]{64}$"))
+              }
             break
           }
         }

@@ -107,6 +107,30 @@ fun WrappedScreen(
       )
     }
 
+    is WrappedUiState.Error -> {
+      Box(
+        modifier =
+          Modifier.fillMaxSize().background(Color(0xFF0A0A0E)).systemBarsPadding().padding(24.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          Text(
+            "WRAPPED COULDN'T LOAD",
+            color = Color(0xFF00F5D4),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+          )
+          Spacer(Modifier.height(12.dp))
+          Text(state.message, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center)
+          Spacer(Modifier.height(24.dp))
+          Button(onClick = { viewModel.loadWrappedData(selectedRange) }) {
+            Text("Try again")
+          }
+          TextButton(onClick = { navController.navigateUp() }) { Text("Go back") }
+        }
+      }
+    }
+
     is WrappedUiState.Ready -> {
       val data = state.data
       var currentSlide by remember { mutableIntStateOf(0) }
@@ -132,16 +156,20 @@ fun WrappedScreen(
       LaunchedEffect(data.topSong) {
         val topSong = data.topSong
         if (topSong != null && playerConnection != null) {
-          val currentId = playerConnection.mediaMetadata.value?.id
-          if (currentId != topSong.id) {
-            playerConnection.playQueue(
-              YouTubeQueue(
-                endpoint = WatchEndpoint(topSong.id),
-                preloadItem = topSong.toMediaMetadata(),
-              ),
-            )
-          } else if (!playerConnection.isPlaying.value) {
-            playerConnection.play()
+          try {
+            val currentId = playerConnection.mediaMetadata.value?.id
+            if (currentId != topSong.id) {
+              playerConnection.playQueue(
+                YouTubeQueue(
+                  endpoint = WatchEndpoint(topSong.id),
+                  preloadItem = topSong.toMediaMetadata(),
+                ),
+              )
+            } else if (!playerConnection.isPlaying.value) {
+              playerConnection.play()
+            }
+          } catch (error: Exception) {
+            android.util.Log.w("SwarrWrapped", "Unable to start the top track", error)
           }
         }
       }
@@ -642,8 +670,7 @@ private fun IntroSlideSpotify(
 
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
       Text(
-        text =
-          "Every beat, replay, and late-night obsession that soundtracked your life on Swarr.",
+        text = "Every beat, replay, and late-night obsession that soundtracked your life on Swarr.",
         style =
           MaterialTheme.typography.bodyLarge.copy(
             fontSize = 16.sp,

@@ -11,6 +11,7 @@ import echo.music.iad1tya.db.entities.PlaylistSongMap
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,139 +53,149 @@ constructor(
   fun loadWrappedData(range: WrappedTimeRange) {
     viewModelScope.launch(Dispatchers.IO) {
       _uiState.value = WrappedUiState.Loading
-
-      val now = LocalDateTime.now()
-      val (fromTimeStamp, toTimeStamp, yearLabel) =
-        when (range) {
-          WrappedTimeRange.THIS_YEAR -> {
-            val startOfYear = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0)
-            Triple(
-              startOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
-              now.toInstant(ZoneOffset.UTC).toEpochMilli(),
-              now.year.toString(),
-            )
+      try {
+        val now = LocalDateTime.now()
+        val (fromTimeStamp, toTimeStamp, yearLabel) =
+          when (range) {
+            WrappedTimeRange.THIS_YEAR -> {
+              val startOfYear = now.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0)
+              Triple(
+                startOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                now.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                now.year.toString(),
+              )
+            }
+            WrappedTimeRange.LAST_YEAR -> {
+              val lastYear = now.minusYears(1)
+              val startOfYear = lastYear.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0)
+              val endOfYear =
+                lastYear.withMonth(12).withDayOfMonth(31).withHour(23).withMinute(59).withSecond(59)
+              Triple(
+                startOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                endOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                lastYear.year.toString(),
+              )
+            }
+            WrappedTimeRange.ALL_TIME -> {
+              Triple(
+                0L,
+                now.toInstant(ZoneOffset.UTC).toEpochMilli(),
+                "All-Time",
+              )
+            }
           }
-          WrappedTimeRange.LAST_YEAR -> {
-            val lastYear = now.minusYears(1)
-            val startOfYear = lastYear.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0)
-            val endOfYear =
-              lastYear.withMonth(12).withDayOfMonth(31).withHour(23).withMinute(59).withSecond(59)
-            Triple(
-              startOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
-              endOfYear.toInstant(ZoneOffset.UTC).toEpochMilli(),
-              lastYear.year.toString(),
-            )
-          }
-          WrappedTimeRange.ALL_TIME -> {
-            Triple(
-              0L,
-              now.toInstant(ZoneOffset.UTC).toEpochMilli(),
-              "All-Time",
-            )
-          }
-        }
 
-      val uniqueSongsCount = database.getUniqueSongCountInRange(fromTimeStamp, toTimeStamp).first()
+        val uniqueSongsCount =
+          database.getUniqueSongCountInRange(fromTimeStamp, toTimeStamp).first()
 
-      // If user doesn't have enough data for the selected period, check all time as fallback
-      // recommendation
-      if (uniqueSongsCount < 3) {
-        val allTimeSongs = database.getUniqueSongCountInRange(0L, Long.MAX_VALUE).first()
-        if (range != WrappedTimeRange.ALL_TIME && allTimeSongs >= 3) {
-          // Auto fallback to All Time if current year has insufficient listens
-          _selectedRange.value = WrappedTimeRange.ALL_TIME
-          loadWrappedData(WrappedTimeRange.ALL_TIME)
+        // If user doesn't have enough data for the selected period, check all time as fallback
+        // recommendation
+        if (uniqueSongsCount < 3) {
+          val allTimeSongs = database.getUniqueSongCountInRange(0L, Long.MAX_VALUE).first()
+          if (range != WrappedTimeRange.ALL_TIME && allTimeSongs >= 3) {
+            // Auto fallback to All Time if current year has insufficient listens
+            _selectedRange.value = WrappedTimeRange.ALL_TIME
+            loadWrappedData(WrappedTimeRange.ALL_TIME)
+            return@launch
+          }
+          _uiState.value =
+            WrappedUiState.InsufficientData(
+              songsPlayed = uniqueSongsCount,
+              minSongsRequired = 3,
+            )
           return@launch
         }
+
+        val totalPlayTimeMs =
+          database.getTotalPlayTimeInRange(fromTimeStamp, toTimeStamp).first() ?: 0L
+        val uniqueArtistsCount =
+          database.getUniqueArtistCountInRange(fromTimeStamp, toTimeStamp).first()
+        val uniqueAlbumsCount =
+          database.getUniqueAlbumCountInRange(fromTimeStamp, toTimeStamp).first()
+
+        val topSongsStats =
+          database
+            .mostPlayedSongsStats(
+              fromTimeStamp = fromTimeStamp,
+              limit = 50,
+              toTimeStamp = toTimeStamp,
+            )
+            .first()
+
+        val topSongs =
+          database
+            .mostPlayedSongs(
+              fromTimeStamp = fromTimeStamp,
+              limit = 50,
+              toTimeStamp = toTimeStamp,
+            )
+            .first()
+
+        val topArtists =
+          database
+            .mostPlayedArtists(
+              fromTimeStamp = fromTimeStamp,
+              limit = 10,
+              toTimeStamp = toTimeStamp,
+            )
+            .first()
+
+        val topAlbums =
+          database
+            .mostPlayedAlbums(
+              fromTimeStamp = fromTimeStamp,
+              limit = 10,
+              toTimeStamp = toTimeStamp,
+            )
+            .first()
+
+        val topSong = topSongs.firstOrNull()
+        val topSongStat =
+          topSongsStats.firstOrNull { it.id == topSong?.id } ?: topSongsStats.firstOrNull()
+        val topArtist = topArtists.firstOrNull()
+        val topAlbum = topAlbums.firstOrNull()
+
+        val totalMinutes = totalPlayTimeMs / 60000L
+        val dominantVibe =
+          when {
+            totalMinutes > 5000L -> "Certified Audiophile"
+            uniqueArtistsCount > 30 -> "Musical Nomad"
+            uniqueSongsCount > 100 -> "Infinite Playlist Curator"
+            topArtist != null && (topArtist.timeListened ?: 0) > (totalPlayTimeMs / 3) ->
+              "Devoted Superfan"
+            else -> "Sonic Explorer"
+          }
+
+        val wrappedData =
+          WrappedData(
+            timeRange = range,
+            yearLabel = yearLabel,
+            totalPlayTimeMs = totalPlayTimeMs,
+            totalMinutes = totalMinutes,
+            uniqueSongsCount = uniqueSongsCount,
+            uniqueArtistsCount = uniqueArtistsCount,
+            uniqueAlbumsCount = uniqueAlbumsCount,
+            topSong = topSong,
+            topSongStats = topSongStat,
+            top5Songs = topSongs.take(5),
+            top5SongsStats = topSongsStats.take(5),
+            topArtist = topArtist,
+            top5Artists = topArtists.take(5),
+            topAlbum = topAlbum,
+            top5Albums = topAlbums.take(5),
+            dominantVibe = dominantVibe,
+          )
+
+        _uiState.value = WrappedUiState.Ready(wrappedData)
+      } catch (cancelled: CancellationException) {
+        throw cancelled
+      } catch (error: Exception) {
+        android.util.Log.e("SwarrWrapped", "Failed to load listening recap", error)
         _uiState.value =
-          WrappedUiState.InsufficientData(
-            songsPlayed = uniqueSongsCount,
-            minSongsRequired = 3,
+          WrappedUiState.Error(
+            "Couldn't load your listening recap. Check your library and try again.",
           )
-        return@launch
       }
-
-      val totalPlayTimeMs =
-        database.getTotalPlayTimeInRange(fromTimeStamp, toTimeStamp).first() ?: 0L
-      val uniqueArtistsCount =
-        database.getUniqueArtistCountInRange(fromTimeStamp, toTimeStamp).first()
-      val uniqueAlbumsCount =
-        database.getUniqueAlbumCountInRange(fromTimeStamp, toTimeStamp).first()
-
-      val topSongsStats =
-        database
-          .mostPlayedSongsStats(
-            fromTimeStamp = fromTimeStamp,
-            limit = 50,
-            toTimeStamp = toTimeStamp,
-          )
-          .first()
-
-      val topSongs =
-        database
-          .mostPlayedSongs(
-            fromTimeStamp = fromTimeStamp,
-            limit = 50,
-            toTimeStamp = toTimeStamp,
-          )
-          .first()
-
-      val topArtists =
-        database
-          .mostPlayedArtists(
-            fromTimeStamp = fromTimeStamp,
-            limit = 10,
-            toTimeStamp = toTimeStamp,
-          )
-          .first()
-
-      val topAlbums =
-        database
-          .mostPlayedAlbums(
-            fromTimeStamp = fromTimeStamp,
-            limit = 10,
-            toTimeStamp = toTimeStamp,
-          )
-          .first()
-
-      val topSong = topSongs.firstOrNull()
-      val topSongStat =
-        topSongsStats.firstOrNull { it.id == topSong?.id } ?: topSongsStats.firstOrNull()
-      val topArtist = topArtists.firstOrNull()
-      val topAlbum = topAlbums.firstOrNull()
-
-      val totalMinutes = totalPlayTimeMs / 60000L
-      val dominantVibe =
-        when {
-          totalMinutes > 5000L -> "Certified Audiophile"
-          uniqueArtistsCount > 30 -> "Musical Nomad"
-          uniqueSongsCount > 100 -> "Infinite Playlist Curator"
-          topArtist != null && (topArtist.timeListened ?: 0) > (totalPlayTimeMs / 3) ->
-            "Devoted Superfan"
-          else -> "Sonic Explorer"
-        }
-
-      val wrappedData =
-        WrappedData(
-          timeRange = range,
-          yearLabel = yearLabel,
-          totalPlayTimeMs = totalPlayTimeMs,
-          totalMinutes = totalMinutes,
-          uniqueSongsCount = uniqueSongsCount,
-          uniqueArtistsCount = uniqueArtistsCount,
-          uniqueAlbumsCount = uniqueAlbumsCount,
-          topSong = topSong,
-          topSongStats = topSongStat,
-          top5Songs = topSongs.take(5),
-          top5SongsStats = topSongsStats.take(5),
-          topArtist = topArtist,
-          top5Artists = topArtists.take(5),
-          topAlbum = topAlbum,
-          top5Albums = topAlbums.take(5),
-          dominantVibe = dominantVibe,
-        )
-
-      _uiState.value = WrappedUiState.Ready(wrappedData)
     }
   }
 

@@ -1948,7 +1948,12 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
     ),
 
     // About Screen - Swarr and developer profiles
-    SearchableSetting("Swarr on GitHub", "View Swarr source code and releases", "About", "settings/about"),
+    SearchableSetting(
+      "Swarr on GitHub",
+      "View Swarr source code and releases",
+      "About",
+      "settings/about",
+    ),
     SearchableSetting("Prashant", "Open Prashant's GitHub profile", "About", "settings/about"),
     SearchableSetting("Sachit", "Open Sachit's GitHub profile", "About", "settings/about"),
   ) +

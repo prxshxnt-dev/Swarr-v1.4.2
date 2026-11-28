@@ -1111,9 +1111,9 @@ constructor(
   }
 
   /**
-   * The request without "… on Swarr": the assistant can leave the app's name, and the short
-   * word before it, in the text it passes. The name is the app's own label, so this needs no word
-   * list; the word before it is dropped only when it is short, as prepositions are.
+   * The request without "… on Swarr": the assistant can leave the app's name, and the short word
+   * before it, in the text it passes. The name is the app's own label, so this needs no word list;
+   * the word before it is dropped only when it is short, as prepositions are.
    */
   private fun withoutAppName(text: String): String {
     val label = context.applicationInfo.loadLabel(context.packageManager).toString()

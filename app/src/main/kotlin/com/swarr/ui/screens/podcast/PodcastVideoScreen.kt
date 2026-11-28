@@ -99,8 +99,7 @@ private fun buildMediaSource(
   okHttpClient: OkHttpClient,
 ): MediaSource {
   val okHttpFactory = OkHttpDataSource.Factory(okHttpClient)
-  val chunkedFactory =
-    com.swarr.playback.ChunkedDataSource.Factory(okHttpFactory, 1024 * 1024L)
+  val chunkedFactory = com.swarr.playback.ChunkedDataSource.Factory(okHttpFactory, 1024 * 1024L)
   val upstreamFactory = DefaultDataSource.Factory(context, chunkedFactory)
   val mediaSourceFactory = DefaultMediaSourceFactory(upstreamFactory)
 

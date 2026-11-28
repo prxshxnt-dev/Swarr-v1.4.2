@@ -130,11 +130,11 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.toBitmap
-import com.swarr.utils.HapticType
-import com.swarr.utils.rememberHapticHelper
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
+import com.swarr.utils.HapticType
+import com.swarr.utils.rememberHapticHelper
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import echo.music.iad1tya.ai.AiRecommendationHelper
@@ -181,12 +181,6 @@ import echo.music.iad1tya.constants.UseFloatingNavBarKey
 import echo.music.iad1tya.constants.UseNewMiniPlayerDesignKey
 import echo.music.iad1tya.db.MusicDatabase
 import echo.music.iad1tya.db.entities.SearchHistory
-import echo.music.iad1tya.swarr.AudioDeviceBottomSheet
-import echo.music.iad1tya.swarr.UpdateNotificationHelper
-import echo.music.iad1tya.swarr.updater.checkForUpdate
-import echo.music.iad1tya.swarr.updater.getAutoUpdateCheckSetting
-import echo.music.iad1tya.swarr.updater.getUpdateNotificationsSetting
-import echo.music.iad1tya.swarr.updater.saveUpdateAvailableState
 import echo.music.iad1tya.extensions.toEnum
 import echo.music.iad1tya.models.toMediaMetadata
 import echo.music.iad1tya.playback.DownloadUtil
@@ -195,6 +189,12 @@ import echo.music.iad1tya.playback.MusicService.MusicBinder
 import echo.music.iad1tya.playback.PlayerConnection
 import echo.music.iad1tya.playback.queues.ListQueue
 import echo.music.iad1tya.playback.queues.YouTubeQueue
+import echo.music.iad1tya.swarr.AudioDeviceBottomSheet
+import echo.music.iad1tya.swarr.UpdateNotificationHelper
+import echo.music.iad1tya.swarr.updater.checkForUpdate
+import echo.music.iad1tya.swarr.updater.getAutoUpdateCheckSetting
+import echo.music.iad1tya.swarr.updater.getUpdateNotificationsSetting
+import echo.music.iad1tya.swarr.updater.saveUpdateAvailableState
 import echo.music.iad1tya.ui.component.*
 import echo.music.iad1tya.ui.component.AppFloatingNavBar
 import echo.music.iad1tya.ui.component.GlassEffectConfig
@@ -210,15 +210,14 @@ import echo.music.iad1tya.ui.menu.YouTubeSongMenu
 import echo.music.iad1tya.ui.player.BottomSheetPlayer
 import echo.music.iad1tya.ui.screens.Screens
 import echo.music.iad1tya.ui.screens.SettingDialoge
-import echo.music.iad1tya.ui.screens.WelcomeDialog
 import echo.music.iad1tya.ui.screens.navigationBuilder
 import echo.music.iad1tya.ui.screens.settings.DarkMode
 import echo.music.iad1tya.ui.screens.settings.NavigationTab
 import echo.music.iad1tya.ui.screens.settings.RingtoneViewModel
 import echo.music.iad1tya.ui.theme.ColorSaver
 import echo.music.iad1tya.ui.theme.DefaultThemeColor
-import echo.music.iad1tya.ui.theme.swarrTheme
 import echo.music.iad1tya.ui.theme.extractThemeColor
+import echo.music.iad1tya.ui.theme.swarrTheme
 import echo.music.iad1tya.ui.utils.appBarScrollBehavior
 import echo.music.iad1tya.ui.utils.resetHeightOffset
 import echo.music.iad1tya.utils.SyncUtils
@@ -550,8 +549,7 @@ class MainActivity : ComponentActivity() {
     }
     LaunchedEffect(Unit) {
       val currentVersion = BuildConfig.VERSION_NAME
-      val lastSeenVersion =
-        echo.music.iad1tya.swarr.updater.getLastSeenChangelogVersion(context)
+      val lastSeenVersion = echo.music.iad1tya.swarr.updater.getLastSeenChangelogVersion(context)
       if (lastSeenVersion.isEmpty() || lastSeenVersion != currentVersion) {
         context.dataStore.edit { preferences ->
           preferences[echo.music.iad1tya.constants.ForceOpusKey] = true
@@ -1108,16 +1106,6 @@ class MainActivity : ComponentActivity() {
         var sharedSong: SongItem? by remember { mutableStateOf(null) }
         val snackbarHostState = remember { SnackbarHostState() }
         var showSettingDialoge by remember { mutableStateOf(false) }
-
-        var showWelcomeDialog by remember { mutableStateOf(false) }
-
-        LaunchedEffect(Unit) {
-          val prefs = context.dataStore.data.first()
-          val lastOpened = prefs[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] ?: -1
-          if (lastOpened < BuildConfig.VERSION_CODE) {
-            showWelcomeDialog = true
-          }
-        }
 
         LaunchedEffect(Unit) {
           val activeIntent = pendingIntent ?: intent
@@ -1955,20 +1943,6 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(route)
               },
               homeViewModel = homeViewModel,
-            )
-          }
-
-          if (showWelcomeDialog) {
-            WelcomeDialog(
-              onDismissRequest = {
-                showWelcomeDialog = false
-                coroutineScope.launch {
-                  context.dataStore.edit {
-                    it[echo.music.iad1tya.constants.LastOpenedVersionCodeKey] =
-                      BuildConfig.VERSION_CODE
-                  }
-                }
-              },
             )
           }
 

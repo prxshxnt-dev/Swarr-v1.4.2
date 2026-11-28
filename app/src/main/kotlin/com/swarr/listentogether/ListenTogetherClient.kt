@@ -558,8 +558,7 @@ class ListenTogetherClient @Inject constructor(private val context: Context) {
   private fun acquireWakeLock() {
     if (wakeLock == null) {
       val powerManager = context.getSystemService<PowerManager>()
-      wakeLock =
-        powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "swarr:ListenTogether")
+      wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "swarr:ListenTogether")
     }
     if (wakeLock?.isHeld == false) {
 

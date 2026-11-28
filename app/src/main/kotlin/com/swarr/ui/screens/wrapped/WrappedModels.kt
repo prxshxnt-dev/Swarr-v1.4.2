@@ -40,5 +40,7 @@ sealed interface WrappedUiState {
     val minSongsRequired: Int = 3,
   ) : WrappedUiState
 
+  data class Error(val message: String) : WrappedUiState
+
   data class Ready(val data: WrappedData) : WrappedUiState
 }
