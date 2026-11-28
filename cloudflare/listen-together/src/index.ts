@@ -18,6 +18,7 @@ type User = {
   is_connected: boolean;
   client_session_id: string;
   token_hash: string;
+  disconnected_at: number | null;
 };
 type Suggestion = {
   suggestion_id: string;
@@ -29,7 +30,7 @@ type Room = {
   room_code: string;
   host_id: string;
   users: User[];
-  pending: Array<{ user_id: string; username: string; client_session_id: string }>;
+  pending: Array<{ user_id: string; username: string; client_session_id: string; created_at: number }>;
   current_track: Track | null;
   is_playing: boolean;
   position: number;
@@ -43,7 +44,7 @@ type Room = {
   rate_limits: Record<string, number[]>;
   created_at: number;
 };
-type SocketAttachment = { clientSessionId: string; roomCode?: string; userId?: string };
+type SocketAttachment = { clientSessionId: string; roomCode?: string; userId?: string; pendingRoomCode?: string };
 export type Env = {
   CLIENT_SESSIONS: DurableObjectNamespace<ClientSession>;
   ROOMS: DurableObjectNamespace<ListenTogetherRoom>;
@@ -54,6 +55,7 @@ const MAX_USERNAME = 32;
 const MAX_CHAT = 1000;
 const MAX_QUEUE = 200;
 const SESSION_GRACE_MS = 10 * 60 * 1000;
+const JOIN_REQUEST_TTL_MS = 60 * 1000;
 const ROOM_IDLE_MS = 30 * 60 * 1000;
 
 const response = (body: unknown, status = 200) =>
@@ -173,6 +175,21 @@ export class ClientSession extends DurableObject<Env> {
     }
   }
 
+  async bindPendingRoom(roomCode: string): Promise<void> {
+    for (const ws of this.ctx.getWebSockets()) {
+      ws.serializeAttachment({ clientSessionId: this.ctx.id.toString(), pendingRoomCode: roomCode });
+    }
+  }
+
+  async clearPending(): Promise<void> {
+    for (const ws of this.ctx.getWebSockets()) {
+      const current = ws.deserializeAttachment() as SocketAttachment | null;
+      if (current?.pendingRoomCode) {
+        ws.serializeAttachment({ clientSessionId: current.clientSessionId });
+      }
+    }
+  }
+
   async clearRoom(userId: string): Promise<void> {
     for (const ws of this.ctx.getWebSockets()) {
       const current = ws.deserializeAttachment() as SocketAttachment | null;
@@ -243,9 +260,13 @@ export class ClientSession extends DurableObject<Env> {
         if (!/^[A-Z0-9]{4,8}$/.test(roomCode) || !username) {
           return this.sendError(ws, "invalid_join", "Check the room code and username");
         }
+        await this.bindPendingRoom(roomCode);
         const result = await this.env.ROOMS.get(this.env.ROOMS.idFromName(roomCode))
           .requestJoin(roomCode, username, attachment.clientSessionId);
-        if (result.error) this.sendError(ws, result.error, result.message ?? "Unable to join room");
+        if (result.error) {
+          await this.clearPending();
+          this.sendError(ws, result.error, result.message ?? "Unable to join room");
+        }
         return;
       }
 
@@ -289,6 +310,9 @@ export class ClientSession extends DurableObject<Env> {
     if (attachment?.roomCode && attachment.userId) {
       await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.roomCode))
         .disconnectUser(attachment.userId, attachment.clientSessionId);
+    } else if (attachment?.pendingRoomCode) {
+      await this.env.ROOMS.get(this.env.ROOMS.idFromName(attachment.pendingRoomCode))
+        .cancelPending(attachment.clientSessionId);
     }
     try { ws.close(); } catch { /* already closed */ }
   }
@@ -388,7 +412,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const room: Room = {
         room_code: roomCode, host_id: userId,
         users: [{ user_id: userId, username, is_host: true, is_connected: true,
-          client_session_id: clientSessionId, token_hash: await sha256(hash) }],
+          client_session_id: clientSessionId, token_hash: await sha256(hash), disconnected_at: null }],
         pending: [], current_track: null, is_playing: false, position: 0, last_update: now,
         volume: 1, queue: [], allow_participant_control: false, buffer_track_id: null,
         buffer_ready: [], suggestions: [], rate_limits: {}, created_at: now,
@@ -405,9 +429,10 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       if (room.users.some((u) => u.client_session_id === clientSessionId) ||
           room.pending.some((u) => u.client_session_id === clientSessionId)) return { error: "already_joined" };
       if (room.users.length + room.pending.length >= 20) return { error: "room_full" };
-      const pending = { user_id: randomId(), username, client_session_id: clientSessionId };
+      const pending = { user_id: randomId(), username, client_session_id: clientSessionId, created_at: Date.now() };
       room.pending.push(pending);
       await this.save(room);
+      await this.scheduleAlarm(room);
       const host = room.users.find((u) => u.user_id === room.host_id);
       if (host) await this.send(host.client_session_id, "join_request", {
         user_id: pending.user_id, username: pending.username,
@@ -424,7 +449,9 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const oldSession = user.client_session_id;
       user.client_session_id = clientSessionId;
       user.is_connected = true;
+      user.disconnected_at = null;
       await this.save(room);
+      await this.scheduleAlarm(room);
       if (oldSession !== clientSessionId) {
         await this.session(oldSession).closeSession(userId).catch(() => undefined);
       }
@@ -439,9 +466,10 @@ export class ListenTogetherRoom extends DurableObject<Env> {
       const user = room?.users.find((u) => u.user_id === userId);
       if (!room || !user || user.client_session_id !== clientSessionId) return;
       user.is_connected = false;
+      user.disconnected_at = Date.now();
       await this.save(room);
       await this.broadcast(room, "user_disconnected", { user_id: userId, username: user.username }, userId);
-      await this.ctx.storage.setAlarm(Date.now() + SESSION_GRACE_MS);
+      await this.scheduleAlarm(room);
     });
   }
 
@@ -525,6 +553,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           }
           await this.broadcast(room, "user_left", { user_id: userId, username: user.username }, userId);
           if (!room.users.length) this.deleteRoom(); else await this.save(room);
+          if (room.users.length) await this.scheduleAlarm(room);
           break;
         case "approve_join": {
           if (!isHost) return fail("forbidden", "Only the host can approve participants");
@@ -537,9 +566,11 @@ export class ListenTogetherRoom extends DurableObject<Env> {
             user_id: pending.user_id, username: pending.username, is_host: false,
             is_connected: true, client_session_id: pending.client_session_id,
             token_hash: await sha256(token.hash),
+            disconnected_at: null,
           };
           room.users.push(guest);
           await this.save(room);
+          await this.scheduleAlarm(room);
           await this.session(guest.client_session_id).bindRoom(room.room_code, guest.user_id);
           await this.send(guest.client_session_id, "join_approved", {
             room_code: room.room_code, user_id: guest.user_id, session_token: token.token,
@@ -555,9 +586,11 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           if (index < 0) return;
           const pending = room.pending.splice(index, 1)[0];
           await this.save(room);
+          await this.session(pending.client_session_id).clearPending();
           await this.send(pending.client_session_id, "join_rejected", {
             reason: cleanText(p.reason, 200) || "The host declined your request",
           });
+          await this.scheduleAlarm(room);
           break;
         }
         case "kick_user": {
@@ -566,6 +599,7 @@ export class ListenTogetherRoom extends DurableObject<Env> {
           if (!target || target.is_host) return;
           room.users = room.users.filter((u) => u.user_id !== target.user_id);
           await this.save(room);
+          await this.scheduleAlarm(room);
           await this.session(target.client_session_id).revoke(
             target.user_id,
             cleanText(p.reason, 200) || "Removed by host",
