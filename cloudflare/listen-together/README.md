@@ -1,62 +1,73 @@
-# Listen Together — Cloudflare backend plan
+# Swarr Listen Together — Cloudflare backend
 
-Status: Phase 2 foundation; not deployed.
+<badge>In development · not deployed</badge>
 
-## Compatibility contract
+This folder contains the first Cloudflare backend implementation for Swarr Listen Together. It is isolated on the `feature/listen-together-cloudflare` branch. The Android application and its current production endpoint have not been changed.
 
-The Android client currently connects to a WebSocket endpoint and sends JSON envelopes shaped as:
-`{"type":"<message_type>","payload":{...}}`.
-The client starts in JSON mode. It can upgrade to Protobuf only after it receives a Protobuf frame, so the first backend release must speak JSON. Preserve the existing message names and snake_case payload fields in `app/src/main/kotlin/com/swarr/listentogether/Protocol.kt` and `MessageCodec.kt`. Do not require a client update merely to connect.
+## Compatibility
 
-The server must support the existing room lifecycle and message families:
-- create/join/leave, host approval/rejection, host transfer and kick
-- reconnect using the opaque `session_token`
-- playback actions, queue, volume, playback-state snapshots and buffer readiness
-- chat, track suggestions and room settings
-- ping/pong and temporary disconnect/reconnect notifications
+The Android client currently connects using a JSON WebSocket envelope:
 
-## Proposed Cloudflare topology
+```json
+{"type":"create_room","payload":{"username":"..."}}
+```
 
-Use a Worker as the public WebSocket entry point and two SQLite-backed Durable Object classes:
+The client starts in JSON mode and only upgrades after receiving a Protobuf frame. This backend therefore speaks JSON and retains the message names and snake_case payload fields used by the current Android `Protocol.kt` and `MessageCodec.kt`.
 
-1. **ClientSession** — one object per WebSocket connection. It accepts the socket with the Durable Object WebSocket Hibernation API, parses the JSON envelope, and forwards authenticated events to the room coordinator. It exists so a connection can be upgraded before the server knows whether the client will create or join a room.
-2. **ListenTogetherRoom** — one object per room, addressed deterministically with `ROOMS.idFromName(roomCode)`. It owns the authoritative room state, membership, pending join requests, host identity, playback snapshot, queue, suggestions and reconnect grace period. It sends outbound messages through the relevant ClientSession RPC stub.
+## Current implementation
 
-This avoids a single global room object becoming a bottleneck while retaining one strongly consistent coordinator per room. Room state is persisted before in-memory state is changed. Use SQLite-backed DO storage for new namespaces and the Hibernation API for idle WebSocket connections.
+- `src/index.ts` — Worker entry point, `/health` endpoint, WebSocket routing, connection Durable Object, and room Durable Object.
+- `ClientSession` — accepts hibernatable WebSockets and forwards authenticated room messages.
+- `ListenTogetherRoom` — one Durable Object per room; persists the room snapshot in SQLite-backed Durable Object storage.
+- Supports room creation, join requests, host approval/rejection, reconnect tokens, leave/kick/host transfer, room settings, playback actions, queue and volume sync, sync-state requests, buffering notifications, chat, and track suggestions.
+- Session secrets are random; only a SHA-256 digest is persisted. Reconnect tokens carry the room/user routing data needed by the existing one-field reconnect message.
+- Server-side role checks are applied to host-only actions and participant playback control.
 
-## Session and authorization rules
+## Cloudflare bindings required
 
-- Generate room codes server-side and reject collisions.
-- Generate a cryptographically random per-user session secret. Return it only in `room_created` or `join_approved`; store only its SHA-256 digest server-side.
-- Encode the room code and user ID into the opaque token so a reconnect can locate its room without adding a new field to the Android `reconnect` payload. Validate the digest before restoring a session.
-- Derive the sender identity from the authenticated socket/session, never from a user ID supplied in a playback or moderation payload.
-- Enforce host-only operations on the server. Enforce participant playback control only when `allow_participant_control` is true.
-- Validate message size, usernames, room codes, track metadata, queue length and chat length. Rate-limit room creation, join attempts and chat.
-- A disconnect is temporary; `leave_room`, kick and expired grace periods revoke the session. A kicked/revoked token must not reconnect.
-- Never log session tokens or message payloads containing them.
+The Worker expects two Durable Object namespace bindings:
 
-## Delivery sequence
+| Binding | Class |
+| --- | --- |
+| `CLIENT_SESSIONS` | `ClientSession` |
+| `ROOMS` | `ListenTogetherRoom` |
 
-1. Implement JSON protocol parsing/validation and ClientSession WebSocket lifecycle.
-2. Implement room persistence, room creation/join approval, session token validation and reconnect.
-3. Implement playback/queue/volume sync and buffer readiness.
-4. Implement chat, suggestions, moderation, host transfer and room settings.
-5. Add automated tests for authorization, reconnect, hibernation restoration and multi-client fan-out.
-6. Add an opt-in Android endpoint setting/default migration. Keep the existing external server available until a staged rollout passes on multiple devices.
+Both classes require SQLite-backed Durable Object migrations. Create the bindings and migrations in a non-production environment first. Do not point the Android app at this Worker until the compatibility and multi-device tests below pass.
 
-## Non-goals for the first backend release
+This repository did not previously contain Cloudflare Worker configuration. Follow the current Cloudflare `cf` CLI workflow for a new project; do not add a Wrangler configuration as a shortcut. No Cloudflare resource has been created or deployed by this branch.
 
-- Do not merge Listen Together with Swarr Connect; they are separate features.
-- Do not change the Android Protobuf schema or force a protocol upgrade.
-- Do not deploy or replace the current production server as part of repository work.
-- Do not create Cloudflare resources or expose credentials in source control.
+## Important rollout rules
+
+1. Keep the current external Listen Together server available during development.
+2. Test with at least two Android clients before changing the default endpoint.
+3. Verify JSON compatibility against the exact current app version. Protobuf is not implemented by this Worker yet.
+4. Verify reconnect after network loss, app backgrounding, and Durable Object hibernation.
+5. Verify host-only authorization, kicked-token revocation, room expiry, and message-size limits.
+6. Add rate limiting/abuse controls and automated integration tests before public rollout.
+7. Only change the Android endpoint after a staged test; do not remove the old endpoint prematurely.
+
+## Known limitations — do not treat as production-ready
+
+- Automated integration tests and a full TypeScript build have not yet been run.
+- Protobuf frames are not supported; JSON is the compatibility path for this increment.
+- Chat/join/create rate limiting and stronger abuse controls still need to be added.
+- The current app protocol has no account-authentication handshake; room membership is protected by random session tokens.
+- Buffer readiness and playback timing need real multi-device testing, especially around track changes and late joins.
+- This backend has not been deployed, and the Android default endpoint has not been changed.
 
 ## Validation checklist
 
-- Two clients can create/join a room and host approval reaches the right host.
-- A guest cannot perform host-only actions by forging payload fields.
-- Playback changes, queue and volume reach all authorized participants exactly once.
-- Reconnect restores the same user and room state; revoked/expired tokens fail.
-- A hibernated ClientSession resumes its socket attachment correctly.
-- A room is cleaned up after its configured grace period.
-- Existing Android JSON client remains compatible; Protobuf support is a later explicit compatibility test.
+- [ ] Build/type-check the Worker using the current Cloudflare toolchain.
+- [ ] Two clients can create/join a room and the host receives the join request.
+- [ ] Host approval/rejection and participant removal work.
+- [ ] A guest cannot perform host-only actions by forging payload fields.
+- [ ] Playback, queue and volume changes reach other connected participants.
+- [ ] Reconnect restores the same user and room state; revoked/expired tokens fail.
+- [ ] A hibernated ClientSession resumes its socket attachment correctly.
+- [ ] Buffer wait/complete, chat and track suggestions work with multiple devices.
+- [ ] Existing Android JSON client remains compatible.
+- [ ] Production endpoint migration is separately approved and staged.
+
+## Architecture rationale
+
+A Worker routes incoming WebSocket upgrades to a per-connection Durable Object. A separate Durable Object per room provides strongly coordinated room state and participant fan-out. Hibernatable WebSockets keep idle connections alive without pinning the Durable Object in memory, and SQLite-backed Durable Object storage retains room state across eviction.
